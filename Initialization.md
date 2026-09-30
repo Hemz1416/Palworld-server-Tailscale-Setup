@@ -74,14 +74,17 @@ Rather than giving friends access to your whole account, create a machine-share 
 ## 🎮 PHASE 2: Starting the Palworld Dedicated Server
 
 ### Starting the Server:
-Choose either method from `H:\Games\Pirated\Palworld server\`:
+Choose any method from `H:\Games\Pirated\Palworld server\`:
 
-* **Option A (Recommended)**: Double-click **`Start-PalworldServer.bat`**
-  * Launches `PalServer.exe` with multithreading performance optimizations (`-useperfthreads -NoAsyncLoadingThread -UseMultithreadForDS`).
-* **Option B (With Crash Auto-Restart)**: Double-click **`Run-PalworldServer.bat`**
-  * Starts a monitoring supervisor that automatically restarts `PalServer.exe` if it crashes or runs out of memory.
-* **Option C (Full Interactive Menu)**: Double-click **`ServerMenu.bat`**
-  * Offers options for starting, stopping, live backups, and server configuration.
+* **Option 1 (One-Click Server & Tailscale Host Launcher - Recommended)**:
+  * Double-click **`Start-Server-And-Tailscale.bat`** (or the **`Start Palworld Server & Tailscale`** shortcut on your Desktop).
+  * Automatically verifies Tailscale is running, starts the dedicated server, copies your connect IP (`127.0.0.1:8211`) to your clipboard, and displays an interactive menu to copy passwords and friend IPs.
+* **Option 2 (Standard Dedicated Server Console)**: Double-click **`Start-PalworldServer.bat`**
+  * Launches `PalServer.exe` directly with multithreading performance optimizations (`-useperfthreads -NoAsyncLoadingThread -UseMultithreadForDS`).
+* **Option 3 (With Crash Auto-Restart Supervisor)**: Double-click **`Run-PalworldServer.bat`**
+  * Starts a monitoring supervisor that automatically restarts `PalServer.exe` if it crashes.
+* **Option 4 (Full Interactive Server Menu)**: Double-click **`ServerMenu.bat`**
+  * Full control panel for backups, configuration, and diagnostics.
 
 ### How to Verify the Server is Ready:
 In the black console window that opens, you should see the engine initialize. When it stops outputting logs and remains open, the server is listening on UDP `8211`.
