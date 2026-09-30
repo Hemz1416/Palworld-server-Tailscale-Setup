@@ -20,6 +20,8 @@ To connect to the Hemz Palworld Dedicated Server:
 4. **Connect & Play**:
    * Click **[ CONNECT TO PALWORLD ]** to copy the server address and launch the game!
 
+> 📖 **Full Step-by-Step Walkthrough**: See [**`Initialization.md`**](Initialization.md) for the complete host startup, machine share invite generation, and friend connection instructions.
+
 ---
 
 ## 🔒 Tailscale Machine Share Model
