@@ -1,0 +1,12 @@
+{
+  "appName": "Hemz Palworld Connection Setup",
+  "serverName": "Hemz Palworld",
+  "serverPort": 8211,
+  "serverDeviceName": "hemz",
+  "serverMagicDnsName": "",
+  "serverTailscaleIp": "",
+  "tailscaleInviteUrl": "",
+  "palworldServerPassword": "qSWqLRG4dLJd4QMk",
+  "palworldExecutableHint": "",
+  "connectionTimeoutSeconds": 30
+}

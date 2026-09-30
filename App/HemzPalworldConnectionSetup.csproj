@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>Hemz-Palworld-Connection-Setup</AssemblyName>
+    <RootNamespace>HemzPalworldConnectionSetup</RootNamespace>
+    <ApplicationTitle>Hemz Palworld Connection Setup</ApplicationTitle>
+    <Version>1.0.0</Version>
+    <Authors>Hemz</Authors>
+    <Description>Client-side automated Tailscale and Palworld Dedicated Server connection manager</Description>
+  </PropertyGroup>
+
+  <!-- Embed default connection.json as a fallback resource inside the EXE -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\Config\connection.json" Link="Resources\connection.json" />
+  </ItemGroup>
+
+</Project>
