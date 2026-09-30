@@ -95,7 +95,7 @@ STEP 2: Sign in to Tailscale & Accept Machine Share
     (Note: This grants you private access only to the Palworld server machine,
     not any other devices or the host's entire tailnet).
   - Return to Hemz-Palworld-Connection-Setup.exe.
-  - The status will turn GREEN ("HEMZ PALWORLD SERVER ONLINE") automatically.
+  - The status will turn GREEN ("Host PC: Reachable") automatically.
 
 STEP 3: Launch Palworld and Play
   - Click the green button: [ CONNECT TO PALWORLD ]

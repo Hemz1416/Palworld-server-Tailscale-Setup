@@ -26,63 +26,83 @@ public static class ConfigManager
         string configPath1 = Path.Combine(baseDir, "Config", "connection.json");
         string configPath2 = Path.Combine(baseDir, "connection.json");
 
+        string? foundPath = null;
         string? jsonContent = null;
 
         if (File.Exists(configPath1))
         {
+            foundPath = configPath1;
             Logger.Log($"Loading configuration from file: {configPath1}");
             jsonContent = File.ReadAllText(configPath1);
         }
         else if (File.Exists(configPath2))
         {
+            foundPath = configPath2;
             Logger.Log($"Loading configuration from file: {configPath2}");
             jsonContent = File.ReadAllText(configPath2);
         }
-        else
+
+        var options = new JsonSerializerOptions
         {
-            Logger.Log("External connection.json not found; attempting to load embedded resource...");
+            PropertyNameCaseInsensitive = true,
+            ReadCommentHandling = JsonCommentHandling.Skip,
+            AllowTrailingCommas = true
+        };
+
+        if (foundPath != null)
+        {
+            ConnectionConfig? config;
             try
             {
-                var assembly = Assembly.GetExecutingAssembly();
-                using var stream = assembly.GetManifestResourceStream("HemzPalworldConnectionSetup.Resources.connection.json");
-                if (stream != null)
-                {
-                    using var reader = new StreamReader(stream);
-                    jsonContent = reader.ReadToEnd();
-                    Logger.Log("Successfully loaded embedded default configuration.");
-                }
+                config = JsonSerializer.Deserialize<ConnectionConfig>(jsonContent!, options);
             }
             catch (Exception ex)
             {
-                Logger.LogError("Failed to load embedded connection.json resource", ex);
+                Logger.LogError($"Error deserializing configuration file '{foundPath}'", ex);
+                throw new InvalidOperationException($"Malformed configuration file '{foundPath}': {ex.Message}", ex);
             }
+
+            if (config == null)
+            {
+                throw new InvalidOperationException($"Configuration file '{foundPath}' is empty or invalid.");
+            }
+
+            config.Validate();
+            Logger.Log($"Loaded config from '{foundPath}': AppName='{config.AppName}', ServerName='{config.ServerName}', Port={config.ServerPort}, Device='{config.ServerDeviceName}'");
+            return config;
         }
 
-        if (!string.IsNullOrWhiteSpace(jsonContent))
+        // External configuration file not found, try embedded resource
+        Logger.Log("External connection.json not found; attempting to load embedded resource...");
+        try
         {
-            try
+            var assembly = Assembly.GetExecutingAssembly();
+            using var stream = assembly.GetManifestResourceStream("HemzPalworldConnectionSetup.Resources.connection.json");
+            if (stream != null)
             {
-                var options = new JsonSerializerOptions
+                using var reader = new StreamReader(stream);
+                jsonContent = reader.ReadToEnd();
+                if (!string.IsNullOrWhiteSpace(jsonContent))
                 {
-                    PropertyNameCaseInsensitive = true,
-                    ReadCommentHandling = JsonCommentHandling.Skip,
-                    AllowTrailingCommas = true
-                };
-                var config = JsonSerializer.Deserialize<ConnectionConfig>(jsonContent, options);
-                if (config != null)
-                {
-                    Logger.Log($"Loaded config: AppName='{config.AppName}', ServerName='{config.ServerName}', Port={config.ServerPort}, Device='{config.ServerDeviceName}'");
-                    return config;
+                    var embeddedConfig = JsonSerializer.Deserialize<ConnectionConfig>(jsonContent, options);
+                    if (embeddedConfig != null)
+                    {
+                        embeddedConfig.Validate();
+                        Logger.Log("Successfully loaded and validated embedded default configuration.");
+                        return embeddedConfig;
+                    }
                 }
             }
-            catch (Exception ex)
-            {
-                Logger.LogError("Error deserializing connection.json", ex);
-            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError("Failed to load embedded connection.json resource", ex);
         }
 
         Logger.Log("[WARN] Using hardcoded fallback configuration.");
-        return new ConnectionConfig();
+        var fallback = new ConnectionConfig();
+        fallback.Validate();
+        return fallback;
     }
 
     private static string GetUserSettingsPath()

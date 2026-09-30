@@ -92,7 +92,7 @@
                         <TextBlock Name="TxtBadgeTailscale" Text="● Tailscale: Checking..." FontWeight="SemiBold" FontSize="12" Foreground="#D1D5DB"/>
                     </Border>
                     <Border Name="BadgeServer" Background="#374151" CornerRadius="12" Padding="12,5">
-                        <TextBlock Name="TxtBadgeServer" Text="● Server: Searching..." FontWeight="SemiBold" FontSize="12" Foreground="#D1D5DB"/>
+                        <TextBlock Name="TxtBadgeServer" Text="● Host PC: Searching..." FontWeight="SemiBold" FontSize="12" Foreground="#D1D5DB"/>
                     </Border>
                 </StackPanel>
             </Grid>

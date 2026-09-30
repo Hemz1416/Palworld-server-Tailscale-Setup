@@ -120,6 +120,19 @@ public static class PalworldDetector
     {
         try
         {
+            if (string.IsNullOrWhiteSpace(gamePath) || !File.Exists(gamePath))
+            {
+                Logger.Log($"[ERROR] Cannot launch game; file not found: {gamePath}");
+                return false;
+            }
+
+            string ext = Path.GetExtension(gamePath).ToLowerInvariant();
+            if (ext != ".exe" && ext != ".lnk")
+            {
+                Logger.Log($"[ERROR] Cannot launch game; target is not an executable or shortcut: {gamePath}");
+                return false;
+            }
+
             Logger.Log($"Launching Palworld: {gamePath}");
             var psi = new ProcessStartInfo
             {

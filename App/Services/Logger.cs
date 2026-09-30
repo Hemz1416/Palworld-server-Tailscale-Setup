@@ -97,14 +97,18 @@ public static class Logger
     {
         if (string.IsNullOrEmpty(input)) return string.Empty;
 
-        // Prevent logging passwords, tskey auth keys, tokens, or invitation URLs
         string sanitized = input;
-        sanitized = System.Text.RegularExpressions.Regex.Replace(sanitized, @"(?i)tskey-auth-[a-zA-Z0-9_-]+", "[REDACTED_AUTHKEY]");
-        sanitized = System.Text.RegularExpressions.Regex.Replace(sanitized, @"(?i)tskey-k[a-zA-Z0-9_-]+", "[REDACTED_KEY]");
-        sanitized = System.Text.RegularExpressions.Regex.Replace(sanitized, @"(?i)(password\s*[:=]\s*)([^\s,""']+)", "$1[REDACTED]");
-        sanitized = System.Text.RegularExpressions.Regex.Replace(sanitized, @"(?i)(palworldserverpassword\s*[:=]\s*"")([^""]+)("")", "$1[REDACTED]$3");
-        sanitized = System.Text.RegularExpressions.Regex.Replace(sanitized, @"(?i)(tailscaleinviteurl\s*[:=]\s*"")([^""]+)("")", "$1[REDACTED]$3");
-        sanitized = System.Text.RegularExpressions.Regex.Replace(sanitized, @"(?i)https?://[^\s""']*tailscale\.com[^\s""']*(?:share|invite|login)[^\s""']*", "[REDACTED_INVITATION_URL]");
+
+        // Prevent logging passwords (both quoted and unquoted), tskey auth keys, tokens, or invitation URLs
+        sanitized = System.Text.RegularExpressions.Regex.Replace(sanitized, @"(?i)tskey-(?:auth-|k)?[a-zA-Z0-9_-]+", "[REDACTED_KEY]");
+        sanitized = System.Text.RegularExpressions.Regex.Replace(sanitized, @"(?i)(token\s*[:=]\s*[""']?)([^\s,""';]+)([""']?)", "$1[REDACTED]$3");
+        sanitized = System.Text.RegularExpressions.Regex.Replace(sanitized, @"(?i)(password\s*[:=]\s*[""'])([^""']+)([""'])", "$1[REDACTED]$3");
+        sanitized = System.Text.RegularExpressions.Regex.Replace(sanitized, @"(?i)(password\s*[:=]\s*)([^\s,""';]+)", "$1[REDACTED]");
+        sanitized = System.Text.RegularExpressions.Regex.Replace(sanitized, @"(?i)(""(?:serverpassword|adminpassword|palworldserverpassword)""\s*:\s*"")([^""\\]*)("")", "$1[REDACTED]$3");
+        sanitized = System.Text.RegularExpressions.Regex.Replace(sanitized, @"(?i)(""tailscaleinviteurl""\s*:\s*"")([^""\\]*)("")", "$1[REDACTED]$3");
+        sanitized = System.Text.RegularExpressions.Regex.Replace(sanitized, @"(?i)https?://login\.tailscale\.com/[^\s""'<>]*", "https://login.tailscale.com/[REDACTED]");
+        sanitized = System.Text.RegularExpressions.Regex.Replace(sanitized, @"(?i)https?://[^\s""'<>]*tailscale\.com/[^\s""'<>]*", "[REDACTED_INVITATION_URL]");
+
         return sanitized;
     }
 }

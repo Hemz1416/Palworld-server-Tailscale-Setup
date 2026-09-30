@@ -237,9 +237,9 @@ public partial class MainWindow : Window
 
     private async Task DiscoverAndProbeServerAsync(TailscaleStatusResponse? status)
     {
-        UpdateBadge(BadgeServer, TxtBadgeServer, "● Server: Discovering...", "#F59E0B");
+        UpdateBadge(BadgeServer, TxtBadgeServer, "● Host PC: Discovering...", "#F59E0B");
 
-        // Perform 5-step fallback discovery
+        // Perform discovery
         var (discoveredIp, discoveredName, discoveryMethod) = await _tailscale.DiscoverSharedServerAsync(_config, status);
         _discoveredServerIp = discoveredIp;
         _discoveredServerName = discoveredName;
@@ -248,10 +248,10 @@ public partial class MainWindow : Window
         {
             TxtServerAddress.Text = "Not Discovered (Check Invitation Acceptance)";
             TxtServerAddress.Foreground = new SolidColorBrush(Color.FromRgb(0xEF, 0x44, 0x44));
-            UpdateBadge(BadgeServer, TxtBadgeServer, "● Server: Not Found", "#EF4444");
+            UpdateBadge(BadgeServer, TxtBadgeServer, "● Host PC: Not Found", "#EF4444");
             TxtConnectionPath.Text = "-";
             TxtLatency.Text = "-";
-            TxtUdpPort.Text = "Shared Machine Unresolved";
+            TxtUdpPort.Text = "Shared Host Unresolved";
             BtnConnectGame.IsEnabled = false;
             return;
         }
@@ -265,16 +265,16 @@ public partial class MainWindow : Window
         var probe = await _networkProbe.TestConnectionAsync(_discoveredServerIp, _config.ServerPort);
         TxtConnectionPath.Text = probe.PathType;
         TxtLatency.Text = probe.DeviceReachable ? $"{probe.LatencyMs:F1} ms" : "Unreachable";
-        TxtUdpPort.Text = probe.UdpPortSummary;
+        TxtUdpPort.Text = probe.DeviceReachable ? "UDP 8211: Unverified until in-game connection" : "Host Unreachable";
 
         if (probe.DeviceReachable)
         {
-            UpdateBadge(BadgeServer, TxtBadgeServer, "● Server: ONLINE", "#10B981");
+            UpdateBadge(BadgeServer, TxtBadgeServer, "● Host PC: Reachable", "#10B981");
             BtnConnectGame.IsEnabled = true;
         }
         else
         {
-            UpdateBadge(BadgeServer, TxtBadgeServer, "● Server: Unreachable", "#EF4444");
+            UpdateBadge(BadgeServer, TxtBadgeServer, "● Host PC: Unreachable", "#EF4444");
             BtnConnectGame.IsEnabled = true; // Still allow friend to launch Palworld
         }
     }
@@ -292,9 +292,20 @@ public partial class MainWindow : Window
 
     private void OpenInviteUrl()
     {
-        string url = !string.IsNullOrWhiteSpace(_config.TailscaleInviteUrl) 
-            ? _config.TailscaleInviteUrl 
-            : "https://login.tailscale.com";
+        string url = "https://login.tailscale.com";
+        if (!string.IsNullOrWhiteSpace(_config.TailscaleInviteUrl))
+        {
+            if (Uri.TryCreate(_config.TailscaleInviteUrl, UriKind.Absolute, out var uri) &&
+                uri.Scheme == Uri.UriSchemeHttps &&
+                uri.Host.EndsWith("tailscale.com", StringComparison.OrdinalIgnoreCase))
+            {
+                url = uri.AbsoluteUri;
+            }
+            else
+            {
+                Logger.Log("[WARN] TailscaleInviteUrl failed security validation; defaulting to https://login.tailscale.com");
+            }
+        }
 
         // Never log the actual invitation URL
         Logger.Log("Opening Tailscale shared machine invitation in browser: [REDACTED]");

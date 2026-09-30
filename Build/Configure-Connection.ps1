@@ -23,7 +23,7 @@ $existing = [PSCustomObject]@{
     serverMagicDnsName = ""
     serverTailscaleIp = ""
     tailscaleInviteUrl = ""
-    palworldServerPassword = "qSWqLRG4dLJd4QMk"
+    palworldServerPassword = ""
     palworldExecutableHint = ""
     connectionTimeoutSeconds = 30
 }

@@ -87,14 +87,13 @@ public partial class TroubleshootWindow : Window
             Recommendation = authenticated ? "" : "Accept the shared machine invitation link in your browser and complete Tailscale sign-in."
         });
 
-        // 4. Shared Machine Association?
-        string? selfDns = status?.Self?.DNSName;
+        // 4. Client Account Context
         Diagnostics.Add(new DiagnosticItemViewModel
         {
             StepNumber = 4,
-            Title = "4. Shared Machine Access Policy",
+            Title = "4. Client Tailscale Context",
             Status = authenticated ? DiagnosticStatus.Pass : DiagnosticStatus.Fail,
-            Details = authenticated ? "Client account authenticated. Configured to access the shared Hemz Palworld server machine." : "Not signed into Tailscale.",
+            Details = authenticated ? "Client account authenticated on Tailscale network." : "Not signed into Tailscale.",
             Recommendation = authenticated ? "" : "Sign in using the single-use machine share invitation provided by Hemz."
         });
 
@@ -121,9 +120,9 @@ public partial class TroubleshootWindow : Window
         Diagnostics.Add(new DiagnosticItemViewModel
         {
             StepNumber = 6,
-            Title = "6. Shared Server Machine Reachability",
+            Title = "6. Shared Server Host Reachability",
             Status = pingOk ? DiagnosticStatus.Pass : DiagnosticStatus.Fail,
-            Details = pingOk ? $"Ping reply received ({pingResult?.LatencyMs:F1}ms, Path: {pingResult?.PathType})." : "Shared server machine did not respond to Tailscale ping.",
+            Details = pingOk ? $"Host ping reply received ({pingResult?.LatencyMs:F1}ms, Path: {pingResult?.PathType})." : "Shared server host did not respond to Tailscale ping.",
             Recommendation = pingOk ? "" : "Ensure the server laptop is turned on, awake, and connected to the Internet."
         });
 
@@ -143,29 +142,29 @@ public partial class TroubleshootWindow : Window
         {
             StepNumber = 8,
             Title = "8. Palworld Dedicated Server UDP Endpoint",
-            Status = pingOk ? DiagnosticStatus.Pass : DiagnosticStatus.Info,
-            Details = "Palworld UDP endpoint cannot be directly verified from this diagnostic mode.",
-            Recommendation = pingOk ? "Tailscale network link is healthy. Launch Palworld and connect via 'Join Multiplayer Game' to verify gameplay replication." : "Host machine must be reachable first."
+            Status = DiagnosticStatus.Info,
+            Details = "UDP 8211 cannot be verified via diagnostic ping; Palworld Dedicated Server must be running and tested in-game.",
+            Recommendation = pingOk ? "Host machine is reachable. Launch Palworld and connect via 'Join Multiplayer Game' to verify gameplay replication." : "Host machine must be reachable first."
         });
 
         // 9. Host Machine power state?
         Diagnostics.Add(new DiagnosticItemViewModel
         {
             StepNumber = 9,
-            Title = "9. Host Machine Power & Sleep State",
+            Title = "9. Host Machine Power & Network Response",
             Status = pingOk ? DiagnosticStatus.Pass : DiagnosticStatus.Warning,
             Details = pingOk ? "Host machine is active and responding to network packets." : "Host machine may be asleep or shutting down.",
-            Recommendation = pingOk ? "" : "Confirm with Hemz that the laptop is awake with sleep disabled while plugged in."
+            Recommendation = pingOk ? "" : "Confirm with Hemz that the server PC is awake and connected."
         });
 
-        // 10. Potential ACL/access-control problem?
+        // 10. Peer Network Connectivity
         Diagnostics.Add(new DiagnosticItemViewModel
         {
             StepNumber = 10,
-            Title = "10. Tailscale ACL & Sharing Permissions",
+            Title = "10. Peer Network Packet Routing",
             Status = (serverVisible && pingOk) ? DiagnosticStatus.Pass : (serverVisible && !pingOk ? DiagnosticStatus.Warning : DiagnosticStatus.Info),
-            Details = (serverVisible && pingOk) ? "Network traffic permitted by Tailscale sharing rules." : "Shared machine visible but packets blocked.",
-            Recommendation = (serverVisible && !pingOk) ? "In Tailscale admin console, verify machine sharing is active and permissions permit peer traffic." : ""
+            Details = (serverVisible && pingOk) ? "Network packets are actively routing to host via Tailscale overlay." : "Shared machine visible but packets not returning.",
+            Recommendation = (serverVisible && !pingOk) ? "Verify Windows firewall on the server permits Tailscale UDP/ICMP traffic." : ""
         });
 
         // 11. Connection Path (DIRECT, RELAYED / DERP, or PEER RELAY)

@@ -318,34 +318,62 @@ public class TailscaleService
                 return new TailscalePingResult { Success = false, PathType = "UNREACHABLE" };
             }
 
-            string output = await proc.StandardOutput.ReadToEndAsync(ct);
-            await proc.WaitForExitAsync(ct);
+            using var pingCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            pingCts.CancelAfter(TimeSpan.FromSeconds(10));
+
+            string output = await proc.StandardOutput.ReadToEndAsync(pingCts.Token);
+            await proc.WaitForExitAsync(pingCts.Token);
 
             Logger.Log($"Ping output: {output.Trim().Replace(Environment.NewLine, " | ")}");
 
-            bool isPeerRelay = output.Contains("peer relay") || output.Contains("via peer");
-            bool isRelayed = output.Contains("via DERP");
-            bool isDirect = output.Contains("via [") || output.Contains("direct") || (!isRelayed && !isPeerRelay && output.Contains("pong"));
-            bool success = output.Contains("pong from");
+            var lines = output.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+            var pongLines = lines
+                .Select(l => l.Trim())
+                .Where(l => l.StartsWith("pong from", StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            if (pongLines.Count == 0)
+            {
+                return new TailscalePingResult
+                {
+                    Success = false,
+                    IsDirect = false,
+                    PathType = "UNREACHABLE",
+                    LatencyMs = 0,
+                    Message = "Host did not reply to Tailscale ping."
+                };
+            }
+
+            string lastPong = pongLines.Last();
+
+            bool isPeerRelay = lastPong.Contains("via peer-relay", StringComparison.OrdinalIgnoreCase) ||
+                               lastPong.Contains("via peer relay", StringComparison.OrdinalIgnoreCase) ||
+                               lastPong.Contains("via peer", StringComparison.OrdinalIgnoreCase);
+
+            bool isRelayed = lastPong.Contains("via DERP", StringComparison.OrdinalIgnoreCase);
+
+            bool isDirect = !isPeerRelay && !isRelayed &&
+                            (Regex.IsMatch(lastPong, @"via\s+([0-9\.]+:\d+|\[.+\]:\d+)") ||
+                             lastPong.Contains("via [") ||
+                             lastPong.Contains("direct") ||
+                             lastPong.Contains("via"));
 
             double latency = 0;
-            var latencyMatch = Regex.Match(output, @"in\s+([0-9\.]+)ms");
-            if (latencyMatch.Success && double.TryParse(latencyMatch.Groups[1].Value, out double parsedLat))
+            var latencyMatch = Regex.Match(lastPong, @"in\s+([0-9\.]+)ms", RegexOptions.IgnoreCase);
+            if (latencyMatch.Success && double.TryParse(latencyMatch.Groups[1].Value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out double parsedLat))
             {
                 latency = parsedLat;
             }
 
-            string pathType = success 
-                ? (isPeerRelay ? "PEER RELAY" : (isDirect ? "DIRECT" : (isRelayed ? "RELAYED / DERP" : "DIRECT")))
-                : "UNREACHABLE";
+            string pathType = isPeerRelay ? "PEER RELAY" : (isRelayed ? "RELAYED / DERP" : "DIRECT");
 
             return new TailscalePingResult
             {
-                Success = success,
-                IsDirect = isDirect,
+                Success = true,
+                IsDirect = pathType == "DIRECT",
                 PathType = pathType,
                 LatencyMs = latency,
-                Message = success ? $"Path: {pathType}, Latency: {latency:F1}ms" : "Host did not reply to Tailscale ping."
+                Message = $"Path: {pathType}, Latency: {latency:F1}ms"
             };
         }
         catch (Exception ex)
@@ -354,7 +382,7 @@ public class TailscaleService
             return new TailscalePingResult
             {
                 Success = false,
-                PathType = "ERROR",
+                PathType = "UNREACHABLE",
                 Message = ex.Message
             };
         }
@@ -365,60 +393,68 @@ public class TailscaleService
         TailscaleStatusResponse? status = null, 
         CancellationToken ct = default)
     {
-        // 1. Configured MagicDNS/device hostname if valid
+        if (config == null)
+        {
+            return (null, null, "Not Found");
+        }
+
+        // 1. Configured MagicDNS/device hostname if valid FQDN
         if (!string.IsNullOrWhiteSpace(config.ServerMagicDnsName))
         {
-            Logger.Log($"[DISCOVERY] Step 1: Using configured MagicDNS name: {config.ServerMagicDnsName}");
-            return (config.ServerMagicDnsName, config.ServerMagicDnsName, "Configured MagicDNS");
-        }
-
-        // 2 & 3: Tailscale status peer information (including shared nodes)
-        status ??= await GetStatusAsync(ct);
-        if (status?.Peer != null && status.Peer.Count > 0)
-        {
-            string target = config.ServerDeviceName;
-
-            // Exact match
-            var matchedPeer = status.Peer.Values.FirstOrDefault(p =>
-                (!string.IsNullOrWhiteSpace(p.HostName) && p.HostName.Equals(target, StringComparison.OrdinalIgnoreCase)) ||
-                (!string.IsNullOrWhiteSpace(p.DNSName) && p.DNSName.TrimEnd('.').Equals(target, StringComparison.OrdinalIgnoreCase)));
-
-            // Shared node / substring match
-            if (matchedPeer == null)
+            string dns = config.ServerMagicDnsName.Trim();
+            bool isValidDns = Regex.IsMatch(dns, @"^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$") &&
+                              !dns.Contains(' ') && !dns.Contains('!');
+            if (isValidDns)
             {
-                matchedPeer = status.Peer.Values.FirstOrDefault(p =>
-                    (!string.IsNullOrWhiteSpace(p.HostName) && p.HostName.Contains(target, StringComparison.OrdinalIgnoreCase)) ||
-                    (!string.IsNullOrWhiteSpace(p.DNSName) && p.DNSName.Contains(target, StringComparison.OrdinalIgnoreCase)) ||
-                    (p.ShareeNode == true && !string.IsNullOrWhiteSpace(p.HostName) && p.HostName.Contains(target, StringComparison.OrdinalIgnoreCase)));
+                Logger.Log($"[DISCOVERY] Step 1: Using configured MagicDNS name: {dns}");
+                return (dns, dns, "Configured MagicDNS");
             }
-
-            // If only one shared node is present on the tailnet, automatically map it
-            if (matchedPeer == null)
+            else
             {
-                var sharedPeers = status.Peer.Values.Where(p => p.ShareeNode == true).ToList();
-                if (sharedPeers.Count == 1)
-                {
-                    matchedPeer = sharedPeers[0];
-                    Logger.Log($"[DISCOVERY] Automatically matched single shared machine: {matchedPeer.HostName}");
-                }
-            }
-
-            // 4. Extract currently visible Tailscale IPv4
-            if (matchedPeer != null)
-            {
-                string? ip = matchedPeer.TailscaleIPs?.FirstOrDefault(a => a.Contains('.')) ?? matchedPeer.DNSName?.TrimEnd('.');
-                if (!string.IsNullOrWhiteSpace(ip))
-                {
-                    Logger.Log($"[DISCOVERY] Discovered shared server machine '{matchedPeer.HostName}' with IP: {ip}");
-                    return (ip, matchedPeer.HostName ?? target, "Discovered Shared Machine (Peer Table)");
-                }
+                Logger.Log($"[DISCOVERY] Step 1: Configured MagicDNS name '{dns}' failed syntax validation; skipping.");
             }
         }
 
-        // 5. Fallback to manually configured server Tailscale IP
-        if (!string.IsNullOrWhiteSpace(config.ServerTailscaleIp))
+        // 2 & 3: Tailscale status peer information (requiring explicit configured target device name)
+        if (!string.IsNullOrWhiteSpace(config.ServerDeviceName))
         {
-            Logger.Log($"[DISCOVERY] Step 5: Using configured fallback Tailscale IP: {config.ServerTailscaleIp}");
+            status ??= await GetStatusAsync(ct);
+            if (status?.Peer != null && status.Peer.Count > 0)
+            {
+                string target = config.ServerDeviceName.Trim();
+
+                // Exact match by HostName or DNSName
+                var matchedPeer = status.Peer.Values.FirstOrDefault(p =>
+                    (!string.IsNullOrWhiteSpace(p.HostName) && p.HostName.Equals(target, StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrWhiteSpace(p.DNSName) && p.DNSName.TrimEnd('.').Equals(target, StringComparison.OrdinalIgnoreCase)));
+
+                // Substring match only if target name is at least 3 characters and distinct
+                if (matchedPeer == null && target.Length >= 3)
+                {
+                    matchedPeer = status.Peer.Values.FirstOrDefault(p =>
+                        (!string.IsNullOrWhiteSpace(p.HostName) && p.HostName.Contains(target, StringComparison.OrdinalIgnoreCase)) ||
+                        (!string.IsNullOrWhiteSpace(p.DNSName) && p.DNSName.Contains(target, StringComparison.OrdinalIgnoreCase)));
+                }
+
+                // If matched, extract Tailscale IPv4
+                if (matchedPeer != null)
+                {
+                    string? ip = matchedPeer.TailscaleIPs?.FirstOrDefault(a => a.Contains('.')) ?? matchedPeer.DNSName?.TrimEnd('.');
+                    if (!string.IsNullOrWhiteSpace(ip))
+                    {
+                        Logger.Log($"[DISCOVERY] Discovered shared server machine '{matchedPeer.HostName}' with IP: {ip}");
+                        return (ip, matchedPeer.HostName ?? target, "Discovered Shared Machine (Peer Table)");
+                    }
+                }
+            }
+        }
+
+        // 4. Fallback to manually configured server Tailscale IP if valid IPv4
+        if (!string.IsNullOrWhiteSpace(config.ServerTailscaleIp) &&
+            System.Net.IPAddress.TryParse(config.ServerTailscaleIp, out var parsedIp) &&
+            parsedIp.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+        {
+            Logger.Log($"[DISCOVERY] Step 4: Using configured fallback Tailscale IP: {config.ServerTailscaleIp}");
             return (config.ServerTailscaleIp, config.ServerDeviceName, "Configured Fallback IP");
         }
 

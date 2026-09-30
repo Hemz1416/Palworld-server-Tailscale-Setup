@@ -124,8 +124,8 @@ This script will:
    powershell -ExecutionPolicy Bypass -File ".\Build\Configure-Connection.ps1"
    ```
 2. Enter your Tailscale Machine Share invitation URL (from [Tailscale Admin Console](https://login.tailscale.com/admin/machines) -> click machine `hemz` -> `Share...`).
-3. Choose whether to embed the server password (`qSWqLRG4dLJd4QMk`).
-   > **Security Notice**: Anyone possessing the compiled executable may potentially recover an embedded password. You may choose to omit the password from the package and send it separately.
+3. Configure whether to embed an optional server password (default is empty/omitted for security).
+   > **Security Notice**: Anyone possessing the compiled executable may potentially recover an embedded password. It is recommended to leave the password omitted from the package and send it separately.
 4. The script will automatically trigger `Build\Build-Release.ps1` and output your finalized single-file executable into `Release\`.
 
 ### Step 3: Send to Your Friend

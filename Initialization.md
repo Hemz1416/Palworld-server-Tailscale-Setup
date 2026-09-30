@@ -140,10 +140,7 @@ Send your friend the private Tailscale Share Link you generated in Step 1.4 via 
 4. Scroll to the very bottom of the server browser.
 5. In the input box at the bottom, press `Ctrl + V` to paste the address (e.g., `100.x.x.x:8211`).
 6. Click **Connect**.
-7. If prompted for a password, paste:
-   ```text
-   qSWqLRG4dLJd4QMk
-   ```
+7. If prompted for a password, enter your server password (configured in `PalWorldSettings.ini`).
 8. Click **Submit** to enter the world!
 
 ### For Hemz (Host Joining on Same Laptop):
