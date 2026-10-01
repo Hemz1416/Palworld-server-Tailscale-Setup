@@ -326,6 +326,18 @@ public class TailscaleService
 
             Logger.Log($"Ping output: {output.Trim().Replace(Environment.NewLine, " | ")}");
 
+            if (output.Contains("is local Tailscale IP", StringComparison.OrdinalIgnoreCase))
+            {
+                return new TailscalePingResult
+                {
+                    Success = true,
+                    IsDirect = true,
+                    PathType = "LOCAL (HOST)",
+                    LatencyMs = 0.1,
+                    Message = "Target is the local host machine."
+                };
+            }
+
             var lines = output.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
             var pongLines = lines
                 .Select(l => l.Trim())
