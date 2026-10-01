@@ -1,58 +1,58 @@
-# Troubleshooting & Diagnostic Guide
+# 🔍 Troubleshooting & Diagnostic Guide
 
-This guide covers the automated health audit engine and resolves connectivity scenarios between player clients and the shared **Hemz Palworld Dedicated Server**.
-
----
-
-## 🔍 The Automated Health Audit
-
-Clicking **[ TROUBLESHOOT ]** inside `Hemz-Palworld-Connection-Setup.exe` executes the following sequential checks:
-
-| # | Check | Healthy State | Details & Resolution |
-|---|---|---|---|
-| **1** | **Tailscale Installed** | CLI found at `C:\Program Files\Tailscale\tailscale.exe` | If missing, the app prompts to download and install official Tailscale. |
-| **2** | **Tailscale Windows Service** | Service `"Tailscale"` is `Running` | Queryable via `Get-Service -Name Tailscale`. Check `services.msc` if stopped. |
-| **3** | **Tailscale Authentication** | Backend state: `Running` | Ensure the user has completed browser authentication. |
-| **4** | **Shared Machine Access Policy** | Server node visible in peer table | Ensure the single-use machine-share invitation was accepted by the friend. |
-| **5** | **Shared Server Machine Discovery** | Shared node resolved | 5-step discovery hierarchy (MagicDNS → Peer table → Substring match → Visible IPv4 → Configured Fallback IP). |
-| **6** | **Tailscale Server Reachability** | ICMP / DERP replies received | Verifies device visibility and network latency. (*Note: Does not probe UDP 8211*). |
-| **7** | **Palworld UDP 8211 Service Check** | Host configured on port 8211 | UDP application-level reachability cannot be directly verified from diagnostic mode. Verifies host configuration and game launch readiness. |
-| **8** | **Palworld Dedicated Server Process** | `PalServer.exe` active on host | Ensure the server host has launched `PalServer.exe` (or `Start-PalworldServer.bat`). |
-| **9** | **Host Machine Power State** | Host responding actively | Ensure the host laptop does not enter Windows Sleep or Hibernate while hosting. |
-| **10** | **Firewall & Traffic Policy** | WireGuard traffic allowed | Ensure host Windows Firewall permits `PalServer.exe` / UDP port 8211. |
-| **11** | **Connection Path Evaluation** | `DIRECT`, `RELAYED / DERP`, or `PEER RELAY` | DERP relays are not errors; they provide transparent fallback across restrictive NATs. Direct connections offer lowest latency. |
-| **12** | **Palworld Client Installation** | `Palworld.exe` detected | Friend can click browse or launch the game manually from Steam/desktop. |
+This guide covers troubleshooting connectivity and game server discovery over Tailscale for both the **Host (Hemz)** and **Connecting Friends**.
 
 ---
 
-## 🛠️ Common Scenarios & Solutions
+## 🛠️ Step-by-Step Diagnostic Checklist
 
-### 1. "Shared server machine not visible"
-* **Mechanism**: Machine sharing grants access exclusively to the shared server node (`hemz`).
-* **Causes**:
-  1. The friend has not yet accepted the single-use machine-share link in their browser.
-  2. The invitation link expired before acceptance.
-  3. The machine share was revoked in the Tailscale Admin Console.
-* **Resolution**:
+| # | Check Item | How to Verify | Solution |
+| :--- | :--- | :--- | :--- |
+| **1** | **Tailscale Installed & Running** | Check Windows system tray for Tailscale icon | Run `Host-Dashboard.bat` (Host) or `Friend-Quick-Join.bat` (Friend) to start the service. |
+| **2** | **Tailscale Login / Authentication** | Run `tailscale status` | Sign in with your Google/Microsoft account in your browser. |
+| **3** | **Machine Share Accepted** | Look for Host in `tailscale status` | Friend must click and accept the single-use Machine Share link sent by Hemz. |
+| **4** | **Tailscale Ping Check** | Run `tailscale ping 100.97.56.52` | If ping replies, Tailscale WireGuard mesh is 100% active and healthy! |
+| **5** | **Game Server Port Listening** | Run `Host-Dashboard.bat` or PowerShell | Ensure game server is launched and listening on the designated port (TCP or UDP). |
+| **6** | **Windows Defender Firewall** | Run `Setup-Firewall-Rule.bat` | Windows Firewall can block game ports even when ping succeeds. Run firewall helper. |
+| **7** | **Host PC Sleep / Hibernate** | Check Windows power settings | Ensure the host PC does not sleep or shut down while hosting. |
+
+---
+
+## 🚨 Common Scenarios & Solutions
+
+### 1. "Friend cannot see host machine in Tailscale"
+* **Cause**: Friend has not accepted the Machine Share invitation, or the invitation expired.
+* **Fix**:
   1. Open [Tailscale Admin Machines](https://login.tailscale.com/admin/machines).
-  2. Locate machine `hemz` -> click `...` -> **Share...**.
-  3. Generate a new single-use machine share link and provide it to the friend.
+  2. Locate your machine (e.g. `hemz`) -> click `...` -> **Share...**.
+  3. Generate a new link and send it to your friend.
+  4. Friend opens the link in their browser and clicks **Accept**.
 
-### 2. "Tailscale ping succeeds, but cannot connect in Palworld"
-* **Key Distinction**: `tailscale ping` only verifies that the host machine is awake and reachable over the Tailscale WireGuard mesh. It does **not** prove that `PalServer.exe` is running or listening on UDP 8211.
-* **Checks on Host Machine**:
-  1. Verify `PalServer.exe` is currently running in Windows Task Manager.
-  2. Verify Windows Defender Firewall has an Inbound Rule allowing UDP port 8211 for `PalServer-Win64-Shipping.exe`.
-  3. Verify the game is running on port 8211 in `PalWorldSettings.ini`.
+### 2. "Tailscale ping succeeds, but friend cannot join the game server"
+* **Key Distinction**: `tailscale ping` only verifies that your computer is awake and reachable over the Tailscale WireGuard mesh. It does **not** prove that the game server is listening or unblocked in Windows Firewall.
+* **Fix**:
+  1. **Check if server is running**: In `Host-Dashboard.bat`, verify if the port status displays `[ACTIVE (Listening)]`.
+  2. **Unblock Windows Firewall**: Run [`Setup-Firewall-Rule.bat`](file:///Setup-Firewall-Rule.bat) as Administrator and choose your game to open its port on Windows Defender Firewall.
+  3. **Verify Port & Protocol**:
+     - Minecraft Java uses **TCP 25565**.
+     - Palworld uses **UDP 8211**.
+     - Minecraft Bedrock uses **UDP 19132**.
+     - Valheim uses **UDP 2456-2458**.
+     - Terraria uses **TCP 7777**.
 
 ### 3. Connection Path: "RELAYED / DERP"
-* **What it means**: Direct peer-to-peer UDP hole-punching could not be established between the two residential routers (often due to symmetric NAT or carrier-grade NAT). Tailscale is routing packets through its closest encrypted DERP relay server.
-* **Is this an error?**: **No.** DERP relaying is an intentional fallback mechanism designed to guarantee connectivity where normal peer-to-peer networks fail.
-* **Optimization**: If latency is high, playing on Ethernet and ensuring UPnP is enabled on the residential router can help establish a DIRECT peer-to-peer path.
+* **What it means**: Direct peer-to-peer UDP hole punching was not possible between the two home routers (common with cellular hotspot internet, CGNAT, or strict symmetric NATs). Tailscale is routing traffic through its encrypted DERP relay.
+* **Is this broken?**: **No.** DERP relaying is an intentional fallback that ensures you can still play together even when direct connection is blocked by ISPs.
+* **How to improve**:
+  - Connect via Ethernet cable instead of Wi-Fi where possible.
+  - Enable UPnP on your home Wi-Fi router if available.
 
-### 4. How to Connect in Palworld
-1. In Palworld main menu, select **Join Multiplayer Game**.
-2. Scroll to the very bottom of the server browser.
-3. Paste the server address (`100.x.x.x:8211`) into the direct connection text box.
-4. If a password is required, click **[ COPY SERVER PASSWORD ]** in the setup app and paste it when prompted.
-5. Click **Connect**.
+### 4. Tailscale Windows Service is Stopped
+* **Symptom**: `failed to connect to local tailscaled process; is the Tailscale service running?`
+* **Fix**:
+  - Run `Host-Dashboard.bat` — it automatically checks `sc query Tailscale` and starts `net start Tailscale` with UAC elevation.
+  - Or in PowerShell as Administrator:
+    ```powershell
+    Start-Service -Name Tailscale
+    Set-Service -Name Tailscale -StartupType Automatic
+    ```
