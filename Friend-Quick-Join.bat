@@ -1,5 +1,5 @@
 @echo off
-title Friend Quick Join - Connect to Hemz via Tailscale
+title Friend Quick Join - Palworld & Minecraft Java
 setlocal EnableDelayedExpansion
 
 set "HOST_IP=100.97.56.52"
@@ -36,7 +36,6 @@ if %errorlevel% neq 0 (
     if not exist "%TS_EXE%" (
         echo   [!] Tailscale is not installed on this PC.
         echo   [+] Downloading official Tailscale installer...
-        set "TS_INSTALLER=%TEMP%\tailscale-setup-latest.exe"
         powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (New-Object System.Net.WebClient).DownloadFile('https://pkgs.tailscale.com/stable/tailscale-setup-latest.exe', '$env:TEMP\tailscale-setup-latest.exe')"
         if exist "%TEMP%\tailscale-setup-latest.exe" (
             echo   [*] Launching Tailscale installer (Please accept Administrator prompt)...
@@ -112,7 +111,7 @@ echo [4/4] Testing connection to %HOST_NAME%'s Server (%HOST_IP%)...
 "%RUN_TS%" ping -c 2 "%HOST_IP%"
 
 echo.
-timeout /t 2 >nul
+timeout /t 1 >nul
 
 :: ----------------------------------------------------------------------
 :: SELECT GAME & GET JOIN ADDRESS
@@ -124,83 +123,27 @@ echo              WHICH GAME ARE YOU JOINING %HOST_NAME% ON?
 echo ======================================================================
 echo   Host Tailscale IP : %HOST_IP%
 echo ----------------------------------------------------------------------
-echo   [1] Minecraft: Java Edition          (Port 25565)
-echo   [2] Minecraft: Bedrock Edition       (Port 19132)
-echo   [3] Palworld Dedicated Server        (Port 8211)
-echo   [4] Valheim Dedicated Server         (Port 2456)
-echo   [5] Terraria / tModLoader            (Port 7777)
-echo   [6] Enshrouded Dedicated Server      (Port 15636)
-echo   [7] Factorio                         (Port 34197)
-echo   [8] Project Zomboid                  (Port 16261)
-echo   [9] Rust Dedicated Server            (Port 28015)
-echo   [10] 7 Days to Die                   (Port 26900)
-echo   [11] Custom Port (Enter port given by %HOST_NAME%)
+echo   [1] Palworld Dedicated Server   (Port 8211)
+echo   [2] Minecraft: Java Edition     (Port 25565)
+echo   [3] Custom Port (Enter port given by %HOST_NAME%)
 echo   [0] Exit
 echo ======================================================================
 set "GOPT="
-set /p "GOPT=Choose game [1-11, 0]: "
+set /p "GOPT=Choose game [1-3, 0]: "
 
 if "%GOPT%"=="1" (
-    set "G_NAME=Minecraft Java"
-    set "G_PORT=25565"
-    set "G_HINT=Multiplayer -> Direct Connection (or Add Server) -> Paste address"
+    set "G_NAME=Palworld"
+    set "G_PORT=8211"
+    set "G_HINT=Join Multiplayer Game -> Bottom IP address bar -> Paste (Ctrl+V) -> Connect"
     goto DONE_COPY
 )
 if "%GOPT%"=="2" (
-    set "G_NAME=Minecraft Bedrock"
-    set "G_PORT=19132"
-    set "G_HINT=Play -> Servers -> Add Server -> Enter IP and Port 19132"
+    set "G_NAME=Minecraft Java"
+    set "G_PORT=25565"
+    set "G_HINT=Multiplayer -> Direct Connection (or Add Server) -> Paste (Ctrl+V) -> Join Server"
     goto DONE_COPY
 )
 if "%GOPT%"=="3" (
-    set "G_NAME=Palworld"
-    set "G_PORT=8211"
-    set "G_HINT=Join Multiplayer Game -> Bottom IP address bar -> Paste address -> Connect"
-    goto DONE_COPY
-)
-if "%GOPT%"=="4" (
-    set "G_NAME=Valheim"
-    set "G_PORT=2456"
-    set "G_HINT=Start Game -> Join Game -> Join IP -> Paste address -> Connect"
-    goto DONE_COPY
-)
-if "%GOPT%"=="5" (
-    set "G_NAME=Terraria"
-    set "G_PORT=7777"
-    set "G_HINT=Multiplayer -> Join via IP -> Enter IP %HOST_IP% -> Port 7777"
-    goto DONE_COPY
-)
-if "%GOPT%"=="6" (
-    set "G_NAME=Enshrouded"
-    set "G_PORT=15636"
-    set "G_HINT=Play -> Join -> Direct Connect or search %HOST_NAME% in server list"
-    goto DONE_COPY
-)
-if "%GOPT%"=="7" (
-    set "G_NAME=Factorio"
-    set "G_PORT=34197"
-    set "G_HINT=Multiplayer -> Connect to address -> Paste address"
-    goto DONE_COPY
-)
-if "%GOPT%"=="8" (
-    set "G_NAME=Project Zomboid"
-    set "G_PORT=16261"
-    set "G_HINT=Join -> Direct Connect -> IP: %HOST_IP%, Port: 16261"
-    goto DONE_COPY
-)
-if "%GOPT%"=="9" (
-    set "G_NAME=Rust"
-    set "G_PORT=28015"
-    set "G_HINT=Press F1 in-game and type: client.connect %HOST_IP%:28015"
-    goto DONE_COPY
-)
-if "%GOPT%"=="10" (
-    set "G_NAME=7 Days to Die"
-    set "G_PORT=26900"
-    set "G_HINT=Join a Game -> Connect to IP -> Enter %HOST_IP% and port 26900"
-    goto DONE_COPY
-)
-if "%GOPT%"=="11" (
     set "G_NAME=Custom Game"
     set /p "G_PORT=Enter the port number given by %HOST_NAME%: "
     set "G_HINT=Paste address into the game's direct connect / multiplayer server menu"

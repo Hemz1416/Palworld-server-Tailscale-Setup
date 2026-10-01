@@ -1,20 +1,6 @@
 {
   "presets": [
     {
-      "id": "minecraft-java",
-      "name": "Minecraft: Java Edition",
-      "port": 25565,
-      "protocol": "TCP",
-      "hint": "Multiplayer -> Direct Connection / Add Server -> Paste IP"
-    },
-    {
-      "id": "minecraft-bedrock",
-      "name": "Minecraft: Bedrock Edition",
-      "port": 19132,
-      "protocol": "UDP",
-      "hint": "Play -> Servers -> Add Server -> Paste IP and Port 19132"
-    },
-    {
       "id": "palworld",
       "name": "Palworld Dedicated Server",
       "port": 8211,
@@ -22,81 +8,11 @@
       "hint": "Join Multiplayer Game -> Bottom IP Bar -> Paste IP:8211 -> Connect"
     },
     {
-      "id": "valheim",
-      "name": "Valheim Dedicated Server",
-      "port": 2456,
-      "protocol": "UDP",
-      "hint": "Join Game -> Join IP -> Paste IP:2456 -> Connect"
-    },
-    {
-      "id": "terraria",
-      "name": "Terraria / tModLoader",
-      "port": 7777,
+      "id": "minecraft-java",
+      "name": "Minecraft: Java Edition",
+      "port": 25565,
       "protocol": "TCP",
-      "hint": "Multiplayer -> Join via IP -> Paste IP -> Port 7777"
-    },
-    {
-      "id": "enshrouded",
-      "name": "Enshrouded Dedicated Server",
-      "port": 15636,
-      "protocol": "UDP",
-      "hint": "Play -> Join -> Search Server or Connect via Direct IP"
-    },
-    {
-      "id": "factorio",
-      "name": "Factorio",
-      "port": 34197,
-      "protocol": "UDP",
-      "hint": "Multiplayer -> Connect to address -> Paste IP:34197"
-    },
-    {
-      "id": "project-zomboid",
-      "name": "Project Zomboid",
-      "port": 16261,
-      "protocol": "UDP",
-      "hint": "Join -> Direct Connect -> Enter IP and Port 16261"
-    },
-    {
-      "id": "rust",
-      "name": "Rust Dedicated Server",
-      "port": 28015,
-      "protocol": "UDP",
-      "hint": "In-game console (F1) -> type: client.connect <IP>:28015"
-    },
-    {
-      "id": "7daystodie",
-      "name": "7 Days to Die",
-      "port": 26900,
-      "protocol": "TCP/UDP",
-      "hint": "Join a Game -> Connect to IP -> Enter IP and Port 26900"
-    },
-    {
-      "id": "ark",
-      "name": "ARK: Survival Evolved / Ascended",
-      "port": 7777,
-      "protocol": "UDP",
-      "hint": "Join ARK -> Unofficial or Steam Server Favorites -> Add IP:27015 / IP:7777"
-    },
-    {
-      "id": "satisfactory",
-      "name": "Satisfactory Dedicated Server",
-      "port": 7777,
-      "protocol": "UDP",
-      "hint": "Server Manager -> Add Server -> Enter IP and Port 7777"
-    },
-    {
-      "id": "sons-of-forest",
-      "name": "Sons of the Forest",
-      "port": 8766,
-      "protocol": "UDP",
-      "hint": "Multiplayer -> Dedicated -> Find server by name or Direct Connect"
-    },
-    {
-      "id": "web-dashboard",
-      "name": "Web Server / HTTP Dashboard / API",
-      "port": 8080,
-      "protocol": "TCP",
-      "hint": "Open browser -> http://<IP>:8080"
+      "hint": "Multiplayer -> Direct Connection / Add Server -> Paste IP:25565"
     }
   ]
 }

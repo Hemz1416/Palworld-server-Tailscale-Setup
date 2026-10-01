@@ -1,5 +1,5 @@
 @echo off
-title Tailscale Host Dashboard - Universal Game & Server Manager
+title Tailscale Host Dashboard - Palworld & Minecraft Java
 setlocal EnableDelayedExpansion
 
 :: ----------------------------------------------------------------------
@@ -80,121 +80,37 @@ if "%TS_IP%"=="" (
 timeout /t 1 >nul
 
 :: ----------------------------------------------------------------------
-:: GAME SELECTOR MENU
+:: GAME SELECTOR MENU (PALWORLD & MINECRAFT JAVA)
 :: ----------------------------------------------------------------------
 :GAME_MENU
 cls
 echo ======================================================================
-echo           TAILSCALE HOST DASHBOARD - SELECT GAME / SERVICE
+echo           TAILSCALE HOST DASHBOARD - SELECT GAME SERVER
 echo ======================================================================
 echo   Your Host Tailscale IP : %TS_IP%
 echo ----------------------------------------------------------------------
-echo   POPULAR GAME PRESETS:
-echo     [1]  Minecraft: Java Edition          (Port 25565 - TCP)
-echo     [2]  Minecraft: Bedrock Edition       (Port 19132 - UDP)
-echo     [3]  Palworld Dedicated Server        (Port 8211  - UDP)
-echo     [4]  Valheim Dedicated Server         (Port 2456  - UDP)
-echo     [5]  Terraria / tModLoader            (Port 7777  - TCP)
-echo     [6]  Enshrouded Dedicated Server      (Port 15636 - UDP)
-echo     [7]  Factorio                         (Port 34197 - UDP)
-echo     [8]  Project Zomboid                  (Port 16261 - UDP)
-echo     [9]  Rust Dedicated Server            (Port 28015 - UDP)
-echo     [10] 7 Days to Die                    (Port 26900 - TCP/UDP)
-echo     [11] ARK: Survival Evolved / Ascended (Port 7777  - UDP)
-echo     [12] Satisfactory Dedicated Server    (Port 7777  - UDP)
-echo     [13] Sons of the Forest               (Port 8766  - UDP)
-echo     [14] Web Server / HTTP Dashboard / API(Port 8080  - TCP)
+echo   AVAILABLE GAME SERVERS:
+echo     [1]  Palworld Dedicated Server   (Port 8211  - UDP)
+echo     [2]  Minecraft: Java Edition     (Port 25565 - TCP)
 echo.
-echo   CUSTOM OPTIONS:
+echo   OTHER OPTIONS:
 echo     [C]  Enter Custom Game Name and Port
 echo     [T]  Tailscale Diagnostics ^& Connected Peers
 echo     [S]  Open Tailscale Admin Machine Share Console
 echo     [0]  Exit Dashboard
 echo ======================================================================
 set "CHOICE="
-set /p "CHOICE=Select an option [1-14, C, T, S, 0]: "
+set /p "CHOICE=Select an option [1, 2, C, T, S, 0]: "
 
 if "%CHOICE%"=="1" (
-    set "GAME_NAME=Minecraft: Java Edition"
-    set "GAME_PORT=25565"
-    set "GAME_PROTO=TCP"
-    goto ACTIVE_GAME_DASHBOARD
-)
-if "%CHOICE%"=="2" (
-    set "GAME_NAME=Minecraft: Bedrock Edition"
-    set "GAME_PORT=19132"
-    set "GAME_PROTO=UDP"
-    goto ACTIVE_GAME_DASHBOARD
-)
-if "%CHOICE%"=="3" (
     set "GAME_NAME=Palworld Dedicated Server"
     set "GAME_PORT=8211"
     set "GAME_PROTO=UDP"
     goto ACTIVE_GAME_DASHBOARD
 )
-if "%CHOICE%"=="4" (
-    set "GAME_NAME=Valheim Dedicated Server"
-    set "GAME_PORT=2456"
-    set "GAME_PROTO=UDP"
-    goto ACTIVE_GAME_DASHBOARD
-)
-if "%CHOICE%"=="5" (
-    set "GAME_NAME=Terraria / tModLoader"
-    set "GAME_PORT=7777"
-    set "GAME_PROTO=TCP"
-    goto ACTIVE_GAME_DASHBOARD
-)
-if "%CHOICE%"=="6" (
-    set "GAME_NAME=Enshrouded Dedicated Server"
-    set "GAME_PORT=15636"
-    set "GAME_PROTO=UDP"
-    goto ACTIVE_GAME_DASHBOARD
-)
-if "%CHOICE%"=="7" (
-    set "GAME_NAME=Factorio"
-    set "GAME_PORT=34197"
-    set "GAME_PROTO=UDP"
-    goto ACTIVE_GAME_DASHBOARD
-)
-if "%CHOICE%"=="8" (
-    set "GAME_NAME=Project Zomboid"
-    set "GAME_PORT=16261"
-    set "GAME_PROTO=UDP"
-    goto ACTIVE_GAME_DASHBOARD
-)
-if "%CHOICE%"=="9" (
-    set "GAME_NAME=Rust Dedicated Server"
-    set "GAME_PORT=28015"
-    set "GAME_PROTO=UDP"
-    goto ACTIVE_GAME_DASHBOARD
-)
-if "%CHOICE%"=="10" (
-    set "GAME_NAME=7 Days to Die"
-    set "GAME_PORT=26900"
-    set "GAME_PROTO=TCP/UDP"
-    goto ACTIVE_GAME_DASHBOARD
-)
-if "%CHOICE%"=="11" (
-    set "GAME_NAME=ARK: Survival Evolved"
-    set "GAME_PORT=7777"
-    set "GAME_PROTO=UDP"
-    goto ACTIVE_GAME_DASHBOARD
-)
-if "%CHOICE%"=="12" (
-    set "GAME_NAME=Satisfactory Dedicated Server"
-    set "GAME_PORT=7777"
-    set "GAME_PROTO=UDP"
-    goto ACTIVE_GAME_DASHBOARD
-)
-if "%CHOICE%"=="13" (
-    set "GAME_NAME=Sons of the Forest"
-    set "GAME_PORT=8766"
-    set "GAME_PROTO=UDP"
-    goto ACTIVE_GAME_DASHBOARD
-)
-if "%CHOICE%"=="14" (
-    set "GAME_NAME=Web / HTTP Dashboard"
-    set "GAME_PORT=8080"
+if "%CHOICE%"=="2" (
+    set "GAME_NAME=Minecraft: Java Edition"
+    set "GAME_PORT=25565"
     set "GAME_PROTO=TCP"
     goto ACTIVE_GAME_DASHBOARD
 )
@@ -203,7 +119,7 @@ if /i "%CHOICE%"=="T" goto TS_STATUS
 if /i "%CHOICE%"=="S" goto OPEN_SHARE_ADMIN
 if "%CHOICE%"=="0" goto EXIT_SCRIPT
 
-echo Invalid option. Please select from the menu.
+echo Invalid option. Please select 1, 2, C, T, S, or 0.
 timeout /t 2 >nul
 goto GAME_MENU
 
@@ -214,11 +130,11 @@ echo                     CUSTOM SERVER CONFIGURATION
 echo ======================================================================
 echo.
 set "GAME_NAME="
-set /p "GAME_NAME=Enter Game / Server Name [e.g. My Custom Game]: "
+set /p "GAME_NAME=Enter Server Name [e.g. My Server]: "
 if "%GAME_NAME%"=="" set "GAME_NAME=Custom Server"
 
 set "GAME_PORT="
-set /p "GAME_PORT=Enter Server Port Number [e.g. 7777]: "
+set /p "GAME_PORT=Enter Server Port Number: "
 if "%GAME_PORT%"=="" (
     echo [ERROR] Port number is required.
     timeout /t 2 >nul
@@ -272,7 +188,7 @@ echo     [4] Check Tailscale Peers ^& Connected Friends
 echo     [5] Ping a Connected Friend via Tailscale
 echo     [6] Open Tailscale Admin Machine Share Console
 echo     [7] Launch Local Server (Search H:\Servers)
-echo     [8] Switch to another Game / Port
+echo     [8] Switch Game (Palworld / Minecraft Java)
 echo     [0] Exit Dashboard
 echo ======================================================================
 set "ACT="
@@ -309,8 +225,8 @@ goto ACTIVE_GAME_DASHBOARD
 :ADD_FIREWALL
 echo.
 echo Configuring Windows Defender Firewall for Port %GAME_PORT% (%GAME_PROTO%)...
-powershell -NoProfile -Command "Start-Process cmd.exe -ArgumentList '/c netsh advfirewall firewall add rule name=""Tailscale - %GAME_NAME% %GAME_PORT%"" dir=in action=allow protocol=TCP localport=%GAME_PORT% & netsh advfirewall firewall add rule name=""Tailscale - %GAME_NAME% %GAME_PORT%"" dir=in action=allow protocol=UDP localport=%GAME_PORT%' -Verb RunAs -Wait"
-echo   [OK] Firewall rules configured for port %GAME_PORT%!
+powershell -NoProfile -Command "Start-Process cmd.exe -ArgumentList '/c netsh advfirewall firewall add rule name=""Tailscale - %GAME_NAME% %GAME_PORT%"" dir=in action=allow protocol=%GAME_PROTO% localport=%GAME_PORT%' -Verb RunAs -Wait"
+echo   [OK] Firewall rule configured for port %GAME_PORT%!
 timeout /t 2 >nul
 goto ACTIVE_GAME_DASHBOARD
 
@@ -360,29 +276,29 @@ cls
 echo ======================================================================
 echo                       LAUNCH LOCAL SERVER
 echo ======================================================================
-echo Checking for known servers in %SERVERS_DIR%...
+echo Checking for servers in %SERVERS_DIR%...
 echo.
-if exist "%SERVERS_DIR%\Minecraft Server\Start-Tailscale-Minecraft.bat" (
-    echo   [1] Minecraft Server (H:\Servers\Minecraft Server)
-)
 if exist "%SERVERS_DIR%\Palworld server\Start-Server-And-Tailscale.bat" (
-    echo   [2] Palworld Server (H:\Servers\Palworld server)
+    echo   [1] Palworld Server (Start-Server-And-Tailscale.bat)
 )
 if exist "%SERVERS_DIR%\Palworld server\Run-PalworldServer.bat" (
-    echo   [3] Palworld Dedicated Server Direct Console
+    echo   [2] Palworld Dedicated Server Direct Console
+)
+if exist "%SERVERS_DIR%\Minecraft Server\Start-Tailscale-Minecraft.bat" (
+    echo   [3] Minecraft Java Server (Start-Tailscale-Minecraft.bat)
 )
 echo   [B] Back to Dashboard
 echo.
 set "LS_OPT="
 set /p "LS_OPT=Select server to launch [or B]: "
 if "%LS_OPT%"=="1" (
-    start "" "%SERVERS_DIR%\Minecraft Server\Start-Tailscale-Minecraft.bat"
-)
-if "%LS_OPT%"=="2" (
     start "" "%SERVERS_DIR%\Palworld server\Start-Server-And-Tailscale.bat"
 )
-if "%LS_OPT%"=="3" (
+if "%LS_OPT%"=="2" (
     start "" "%SERVERS_DIR%\Palworld server\Run-PalworldServer.bat"
+)
+if "%LS_OPT%"=="3" (
+    start "" "%SERVERS_DIR%\Minecraft Server\Start-Tailscale-Minecraft.bat"
 )
 goto ACTIVE_GAME_DASHBOARD
 

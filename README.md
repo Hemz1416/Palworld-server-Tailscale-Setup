@@ -1,8 +1,6 @@
-# 🌐 Tailscale Setup — Universal Game Server Hosting & Connection Hub
+# 🌐 Tailscale Setup — Palworld & Minecraft Java Server Hosting
 
-A complete, self-contained suite of tools, scripts, and documentation for **hosting any game server or application on your Windows PC** and having **friends join you privately via Tailscale** with zero port forwarding, no router access needed, and direct peer-to-peer WireGuard speed.
-
-Works seamlessly for **Minecraft (Java & Bedrock)**, **Palworld**, **Valheim**, **Terraria**, **Enshrouded**, **Factorio**, **Project Zomboid**, **Rust**, **7 Days to Die**, **ARK**, **Sons of the Forest**, **Web Dashboards**, or **any custom game/TCP/UDP port**.
+A streamlined, self-contained suite of tools and scripts for **hosting Palworld and Minecraft Java Edition dedicated servers on your Windows PC** and having **friends join you privately via Tailscale** with zero port forwarding, no router access needed, and direct peer-to-peer WireGuard speed.
 
 ---
 
@@ -10,7 +8,7 @@ Works seamlessly for **Minecraft (Java & Bedrock)**, **Palworld**, **Valheim**, 
 
 Traditionally, self-hosting a game server requires either:
 1. **Risky Port Forwarding:** Logging into your home Wi-Fi router, opening ports to the public Internet, and exposing your public IP to DDoS attacks and port scanners.
-2. **Clunky Third-Party Apps (Hamachi / Radmin):** Slow relayed speeds, 5-player limits, intrusive ads, and broken network adapters.
+2. **Clunky Third-Party Apps (Hamachi / Radmin):** Slow relayed speeds, 5-player limits, intrusive ads, and broken virtual network adapters.
 
 **Tailscale solves this permanently:**
 * **Encrypted WireGuard Mesh:** Friends connect directly to your PC over an authenticated, end-to-end encrypted WireGuard tunnel.
@@ -20,41 +18,46 @@ Traditionally, self-hosting a game server requires either:
 
 ---
 
+## 🎮 Active Game Profiles
+
+| Game | Port | Protocol | In-Game Connection |
+| :--- | :--- | :--- | :--- |
+| **Palworld Dedicated Server** | `8211` | **UDP** | Join Multiplayer Game -> Bottom bar -> `100.97.56.52:8211` |
+| **Minecraft (Java Edition)** | `25565` | **TCP** | Multiplayer -> Direct Connection -> `100.97.56.52:25565` |
+
+*(Custom ports can also be hosted on demand via the Custom Port option).*
+
+---
+
 ## 📂 Repository Structure
 
 ```text
 Tailscale-Setup/
 │
 ├── 🚀 Host Tools (For Server Owner / Hemz)
-│   ├── Host-Dashboard.bat             # Universal Host Control Panel (game presets, auto-copies friend IP, status check)
-│   ├── Setup-Firewall-Rule.bat        # 1-Click Windows Defender Firewall rule manager for any game port
+│   ├── Host-Dashboard.bat             # Host Control Panel (Palworld/Minecraft selector, auto-copies friend IP, status check)
+│   ├── Setup-Firewall-Rule.bat        # 1-Click Windows Defender Firewall rule manager for Palworld & Minecraft
 │   └── Host-Setup.ps1                 # Host pre-flight setup & diagnostics (service status, IP, machine share guide)
 │
 ├── 👥 Friend Tools (To Send to Players)
 │   ├── Friend-Quick-Join.bat          # 1-Click zero-dependency script (auto-installs Tailscale, tests ping, copies IP:PORT)
 │   ├── FRIEND-GUIDE.md                # 3-step Markdown guide ready to share in Discord / WhatsApp
 │   └── Release/                       # Standalone friend distribution folder
-│       ├── Tailscale-Connection-Setup.exe   # Modern single-file GUI app for friends
+│       ├── Tailscale-Connection-Setup.exe   # Single-file GUI app for friends
 │       ├── Friend-Quick-Join.bat           # Lightweight batch launcher for friends
 │       ├── README-FOR-FRIEND.txt          # Plaintext 3-step friend walkthrough
 │       └── Tailscale-Connection-Setup.zip  # Ready-to-send ZIP archive
 │
-├── 🎮 Game Profiles & Reference
+├── 🎮 Configuration
 │   ├── Config/
-│   │   ├── connection.json            # Host server configuration (Host IP: 100.97.56.52, default port, device name)
-│   │   └── games-presets.json         # Pre-configured game database (ports, protocols, in-game connect hints)
-│   └── GAMES-PORT-LIST.md             # Complete reference table for 25+ multiplayer games
-│
-├── 📱 GUI Application Source & Build
-│   ├── App/                           # C# WPF (.NET 10) application source code
-│   └── Build/
-│       ├── Build-Release.ps1          # Automated single-file win-x64 release compiler
-│       └── Configure-Connection.ps1   # Interactive CLI wizard to customize server settings
+│   │   ├── connection.json            # Host server configuration (Host IP: 100.97.56.52, device name)
+│   │   └── games-presets.json         # Presets for Palworld and Minecraft Java
+│   └── GAMES-PORT-LIST.md             # Game port and protocol reference
 │
 └── 📖 Guides & Architecture
     ├── TAILSCALE-MACHINE-SHARE.md     # In-depth guide on Tailscale Node Isolation & share links
     ├── FIREWALL-GUIDE.md              # Windows Defender Firewall troubleshooting & manual commands
-    ├── BUILD.md                       # Building and compiling the C# WPF GUI binary
+    ├── BUILD.md                       # Building and compiling the GUI binary
     ├── SECURITY.md                    # Security architecture & credential safety
     └── TROUBLESHOOTING.md             # Diagnostic audit, DERP relays, UDP NAT traversal
 ```
@@ -70,22 +73,9 @@ Double-click [`Host-Dashboard.bat`](file:///Host-Dashboard.bat):
 3. **Resolves Host IP:** Queries your assigned Tailscale IP (`100.97.56.52`).
 
 ### Step 2: Choose Your Game
-Select your game from the interactive menu:
-- `[1]` **Minecraft (Java Edition)** — Port `25565` (TCP)
-- `[2]` **Minecraft (Bedrock Edition)** — Port `19132` (UDP)
-- `[3]` **Palworld Dedicated Server** — Port `8211` (UDP)
-- `[4]` **Valheim Dedicated Server** — Port `2456` (UDP)
-- `[5]` **Terraria / tModLoader** — Port `7777` (TCP)
-- `[6]` **Enshrouded** — Port `15636` (UDP)
-- `[7]` **Factorio** — Port `34197` (UDP)
-- `[8]` **Project Zomboid** — Port `16261` (UDP)
-- `[9]` **Rust** — Port `28015` (UDP)
-- `[10]` **7 Days to Die** — Port `26900` (TCP/UDP)
-- `[11]` **ARK: Survival Evolved / Ascended** — Port `7777` (UDP)
-- `[12]` **Satisfactory** — Port `7777` (UDP)
-- `[13]` **Sons of the Forest** — Port `8766` (UDP)
-- `[14]` **Web Server / Dashboard** — Port `8080` (TCP)
-- `[C]` **Custom Game / Port** — Enter any port number and protocol!
+Select your game from the menu:
+- `[1]` **Palworld Dedicated Server** — Port `8211` (UDP)
+- `[2]` **Minecraft: Java Edition** — Port `25565` (TCP)
 
 ### Step 3: Instant Clipboard Copy & Server Verification
 - The dashboard automatically detects if the server is active on that port.
@@ -113,27 +103,6 @@ You can send your friend either:
 
 ---
 
-## 📋 Common Multiplayer Game Ports Cheat Sheet
-
-| Game | Default Port | Protocol | Friend In-Game Connection Step |
-| :--- | :--- | :--- | :--- |
-| **Minecraft (Java)** | `25565` | **TCP** | Multiplayer -> Direct Connection -> `Ctrl+V` |
-| **Minecraft (Bedrock)** | `19132` | **UDP** | Play -> Servers -> Add Server -> Enter IP and Port `19132` |
-| **Palworld** | `8211` | **UDP** | Join Multiplayer Game -> Bottom bar -> `Ctrl+V` |
-| **Valheim** | `2456` | **UDP** | Join Game -> Join IP -> `Ctrl+V` |
-| **Terraria** | `7777` | **TCP** | Multiplayer -> Join via IP -> Enter IP and Port `7777` |
-| **Enshrouded** | `15636` | **UDP** | Play -> Join -> Direct Connect or search server name |
-| **Factorio** | `34197` | **UDP** | Multiplayer -> Connect to address -> `Ctrl+V` |
-| **Project Zomboid** | `16261` | **UDP** | Join -> Direct Connect -> IP and Port `16261` |
-| **Rust** | `28015` | **UDP** | Press `F1` in-game -> Type `client.connect 100.97.56.52:28015` |
-| **7 Days to Die** | `26900` | **TCP/UDP** | Join a Game -> Connect to IP -> Enter IP and Port `26900` |
-| **ARK** | `7777` | **UDP** | Steam Favorites / Direct Connect -> `100.97.56.52:7777` |
-| **Web / HTTP Dashboard** | `8080` | **TCP** | Web browser: `http://100.97.56.52:8080` |
-
-*(See [GAMES-PORT-LIST.md](file:///GAMES-PORT-LIST.md) for 25+ additional games).*
-
----
-
 ## 🔒 Security & Machine Share Isolation
 
 Rather than inviting friends to your entire Tailnet, this setup uses **Tailscale Machine Sharing**:
@@ -155,22 +124,14 @@ Friend's Personal Tailscale Account
 
 ## 🛠️ GitHub Repository Renaming
 
-To reflect this universal setup on GitHub:
+To reflect this setup on GitHub:
 
 1. **Go to GitHub Repository Settings:**
    👉 [https://github.com/Hemz1416/Palworld-server-Tailscale-Setup/settings](https://github.com/Hemz1416/Palworld-server-Tailscale-Setup/settings)
 2. In the **Repository name** box, change:
    `Palworld-server-Tailscale-Setup` ➔ `Tailscale-Setup`
 3. Click **Rename**.
-4. GitHub automatically preserves all commit history, releases, and creates automatic redirects from the old URL to the new URL!
-5. In your local repository, update the remote URL:
+4. Update your local git remote URL:
    ```cmd
    git remote set-url origin https://github.com/Hemz1416/Tailscale-Setup.git
    ```
-
----
-
-## 📜 License & Credits
-
-- Built and configured by **Hemz** for private server hosting.
-- Tailscale is a registered trademark of Tailscale Inc.
