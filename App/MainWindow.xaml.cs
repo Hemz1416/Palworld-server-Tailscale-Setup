@@ -62,10 +62,20 @@ public partial class MainWindow : Window
 
     private void ApplyConfigToUI()
     {
+        TxtHeaderTitle.Text = string.IsNullOrWhiteSpace(_config.AppName) ? "TAILSCALE CONNECTION SETUP" : _config.AppName.ToUpperInvariant();
+        TxtHeaderSubtitle.Text = $"Private Tailscale Connection to the Shared {_config.ServerName} Machine";
         TxtServerName.Text = _config.ServerName;
         TxtServerDevice.Text = !string.IsNullOrWhiteSpace(_config.ServerMagicDnsName) 
             ? _config.ServerMagicDnsName 
             : _config.ServerDeviceName;
+
+        string proto = _config.ServerPort == 25565 ? "TCP" : (_config.ServerPort == 8211 ? "UDP" : "Port");
+        LblPortDiag.Text = $"{proto} {_config.ServerPort} Diagnostic:";
+
+        bool isMinecraft = _config.ServerName.Contains("Minecraft", StringComparison.OrdinalIgnoreCase) || _config.ServerPort == 25565;
+        LblGameClient.Text = isMinecraft ? "MINECRAFT GAME CLIENT" : (_config.ServerPort == 8211 ? "PALWORLD GAME CLIENT" : "GAME CLIENT");
+        BtnBrowseGame.Content = isMinecraft ? "Browse Minecraft" : (_config.ServerPort == 8211 ? "Browse Palworld.exe" : "Browse Executable");
+        BtnConnectGame.Content = isMinecraft ? "CONNECT TO MINECRAFT" : (_config.ServerPort == 8211 ? "CONNECT TO PALWORLD" : "CONNECT & COPY");
 
         ChkRememberPassword.IsChecked = ConfigManager.Settings.RememberPassword;
 
@@ -265,7 +275,8 @@ public partial class MainWindow : Window
         var probe = await _networkProbe.TestConnectionAsync(_discoveredServerIp, _config.ServerPort);
         TxtConnectionPath.Text = probe.PathType;
         TxtLatency.Text = probe.DeviceReachable ? $"{probe.LatencyMs:F1} ms" : "Unreachable";
-        TxtUdpPort.Text = probe.DeviceReachable ? "UDP 8211: Unverified until in-game connection" : "Host Unreachable";
+        string portProto = _config.ServerPort == 25565 ? "TCP" : (_config.ServerPort == 8211 ? "UDP" : "Port");
+        TxtUdpPort.Text = probe.DeviceReachable ? $"{portProto} {_config.ServerPort}: Host Reachable (Verify in-game)" : "Host Unreachable";
 
         if (probe.DeviceReachable)
         {

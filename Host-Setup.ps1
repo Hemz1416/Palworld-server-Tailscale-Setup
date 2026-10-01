@@ -81,7 +81,39 @@ if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace($tsIp)) {
     $tsIp = "100.97.56.52"
 }
 
-# 5. Tailscale Machine Share Guide
+# 5. Check Windows Defender Firewall Rules for Game Ports
+Write-Host ""
+Write-Host "[*] Auditing Windows Defender Firewall for game hosting..." -ForegroundColor Cyan
+$mcRule = Get-NetFirewallRule -DisplayName "Tailscale - Minecraft Java*" -ErrorAction SilentlyContinue
+$palRule = Get-NetFirewallRule -DisplayName "Tailscale - Palworld*" -ErrorAction SilentlyContinue
+
+if ($mcRule) {
+    Write-Host "[OK] Minecraft Java firewall rule active: $($mcRule.DisplayName)" -ForegroundColor Green
+} else {
+    Write-Host "[!] Minecraft Java firewall rule is missing." -ForegroundColor Yellow
+}
+
+if ($palRule) {
+    Write-Host "[OK] Palworld Dedicated Server firewall rule active: $($palRule.DisplayName)" -ForegroundColor Green
+} else {
+    Write-Host "[!] Palworld Dedicated Server firewall rule is missing." -ForegroundColor Yellow
+}
+
+if ((-not $mcRule -or -not $palRule) -and $isAdmin) {
+    $addFw = Read-Host "Would you like to automatically configure Windows Firewall for Palworld & Minecraft Java (restricted strictly to Tailscale 100.64.0.0/10)? (Y/N) [Y]"
+    if ($addFw -notmatch "N|no") {
+        if (-not $mcRule) {
+            New-NetFirewallRule -DisplayName "Tailscale - Minecraft Java (25565 TCP)" -Direction Inbound -LocalPort 25565 -Protocol TCP -Action Allow -RemoteAddress "100.64.0.0/10" | Out-Null
+            Write-Host "[OK] Added Minecraft Java rule (TCP 25565 restricted to Tailscale)." -ForegroundColor Green
+        }
+        if (-not $palRule) {
+            New-NetFirewallRule -DisplayName "Tailscale - Palworld (8211 UDP)" -Direction Inbound -LocalPort 8211 -Protocol UDP -Action Allow -RemoteAddress "100.64.0.0/10" | Out-Null
+            Write-Host "[OK] Added Palworld rule (UDP 8211 restricted to Tailscale)." -ForegroundColor Green
+        }
+    }
+}
+
+# 6. Tailscale Machine Share Guide
 Write-Host ""
 Write-Host "======================================================================" -ForegroundColor Cyan
 Write-Host "                 HOW TO INVITE FRIENDS VIA TAILSCALE" -ForegroundColor Cyan

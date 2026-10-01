@@ -224,9 +224,9 @@ goto ACTIVE_GAME_DASHBOARD
 
 :ADD_FIREWALL
 echo.
-echo Configuring Windows Defender Firewall for Port %GAME_PORT% (%GAME_PROTO%)...
-powershell -NoProfile -Command "Start-Process cmd.exe -ArgumentList '/c netsh advfirewall firewall add rule name=""Tailscale - %GAME_NAME% %GAME_PORT%"" dir=in action=allow protocol=%GAME_PROTO% localport=%GAME_PORT%' -Verb RunAs -Wait"
-echo   [OK] Firewall rule configured for port %GAME_PORT%!
+echo Configuring Windows Defender Firewall for Port %GAME_PORT% (%GAME_PROTO%) strictly for Tailscale (100.64.0.0/10)...
+powershell -NoProfile -Command "Start-Process cmd.exe -ArgumentList '/c netsh advfirewall firewall add rule name=""Tailscale - %GAME_NAME% %GAME_PORT%"" dir=in action=allow protocol=%GAME_PROTO% localport=%GAME_PORT% remoteip=100.64.0.0/10' -Verb RunAs -Wait"
+echo   [OK] Firewall rule configured for port %GAME_PORT% (Tailscale subnet only)!
 timeout /t 2 >nul
 goto ACTIVE_GAME_DASHBOARD
 

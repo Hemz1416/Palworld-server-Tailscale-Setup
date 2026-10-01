@@ -84,8 +84,8 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <StackPanel Grid.Column="0">
-                    <TextBlock Text="HEMZ PALWORLD CONNECTION SETUP" FontWeight="Bold" FontSize="22" Foreground="#60A5FA"/>
-                    <TextBlock Text="Private Tailscale Connection to the Shared Hemz Palworld Server Machine" Foreground="#94A3B8" FontSize="13" Margin="0,4,0,0"/>
+                    <TextBlock Name="TxtHeaderTitle" Text="HEMZ TAILSCALE SERVER CONNECTION SETUP" FontWeight="Bold" FontSize="22" Foreground="#60A5FA"/>
+                    <TextBlock Name="TxtHeaderSubtitle" Text="Private Tailscale Connection to the Shared Server Machine" Foreground="#94A3B8" FontSize="13" Margin="0,4,0,0"/>
                 </StackPanel>
                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Orientation="Horizontal">
                     <Border Name="BadgeTailscale" Background="#374151" CornerRadius="12" Padding="12,5" Margin="0,0,8,0">
@@ -171,7 +171,7 @@
                                 <TextBlock Name="TxtServerAddress" Text="Discovering..." HorizontalAlignment="Right" FontWeight="Bold" FontFamily="Consolas" Foreground="#38BDF8"/>
                             </Grid>
                             <Grid Margin="0,0,0,0">
-                                <TextBlock Text="UDP 8211 Diagnostic:" Foreground="#9CA3AF" FontSize="13"/>
+                                <TextBlock Name="LblPortDiag" Text="Port Diagnostic:" Foreground="#9CA3AF" FontSize="13"/>
                                 <TextBlock Name="TxtUdpPort" Text="-" HorizontalAlignment="Right" FontSize="11" Foreground="#94A3B8" TextTrimming="CharacterEllipsis"/>
                             </Grid>
                         </StackPanel>
@@ -211,10 +211,10 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0">
-                            <TextBlock Text="PALWORLD GAME CLIENT" FontWeight="Bold" FontSize="12" Foreground="#94A3B8" Margin="0,0,0,6"/>
-                            <TextBlock Name="TxtPalworldDetectedPath" Text="Detecting Palworld..." Foreground="#D1D5DB" FontSize="13" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock Name="LblGameClient" Text="GAME CLIENT" FontWeight="Bold" FontSize="12" Foreground="#94A3B8" Margin="0,0,0,6"/>
+                            <TextBlock Name="TxtPalworldDetectedPath" Text="Ready to connect" Foreground="#D1D5DB" FontSize="13" TextTrimming="CharacterEllipsis"/>
                         </StackPanel>
-                        <Button Grid.Column="1" Content="Browse Palworld.exe" Click="BtnBrowsePalworld_Click" Style="{StaticResource ActionButton}" Padding="10,6" FontSize="12" VerticalAlignment="Center"/>
+                        <Button Name="BtnBrowseGame" Grid.Column="1" Content="Browse Executable" Click="BtnBrowsePalworld_Click" Style="{StaticResource ActionButton}" Padding="10,6" FontSize="12" VerticalAlignment="Center"/>
                     </Grid>
                 </Border>
 
@@ -232,11 +232,11 @@
                 </Grid.ColumnDefinitions>
                 <StackPanel Grid.Column="0" VerticalAlignment="Center">
                     <TextBlock Text="READY TO PLAY" FontWeight="Bold" FontSize="14" Foreground="#10B981"/>
-                    <TextBlock Text="Click Connect to copy the server address, launch Palworld, and view in-game connection steps." Foreground="#9CA3AF" FontSize="12" Margin="0,2,0,0"/>
+                    <TextBlock Name="TxtReadySubtitle" Text="Click Connect to copy the server address and view in-game connection steps." Foreground="#9CA3AF" FontSize="12" Margin="0,2,0,0"/>
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <Button Name="BtnCopyAddress" Content="Copy Server Address" Click="BtnCopyAddress_Click" Style="{StaticResource ActionButton}" Margin="0,0,10,0"/>
-                    <Button Name="BtnConnectGame" Content="CONNECT TO PALWORLD" Click="BtnConnectGame_Click" Style="{StaticResource PrimaryConnectButton}"/>
+                    <Button Name="BtnConnectGame" Content="CONNECT &amp; COPY" Click="BtnConnectGame_Click" Style="{StaticResource PrimaryConnectButton}"/>
                 </StackPanel>
             </Grid>
         </Border>

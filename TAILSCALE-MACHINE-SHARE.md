@@ -1,26 +1,24 @@
-# 🔒 Tailscale Machine Share Architecture Guide
+# 🔒 Tailscale Machine Share & ACL Hardening Guide
 
-This guide explains how **Tailscale Machine Sharing** works, why it is the optimal architecture for hosting game servers for friends, and how to create single-use machine share links.
+This guide explains how **Tailscale Machine Sharing** works, why it is the optimal architecture for hosting game servers for friends, how to generate share links, and how to restrict shared friends strictly to game ports using **Tailscale ACL Grants**.
 
 ---
 
 ## 🌐 The Two Tailscale Invite Models
 
-When inviting friends to connect to your PC, Tailscale offers two models:
-
 ```
-MODEL 1: Tailnet Member (Full Network Access)
-Your Tailnet ───► NAS ───► Family PCs ───► Game Server
+MODEL 1: Tailnet Member (Full Network Access - NOT Recommended for Casual Friends)
+Your Tailnet ───► NAS ───► Personal PCs ───► Game Server
    ▲
-   └── [Friend has access to entire tailnet or needs complex ACLs]
+   └── [Friend gains visibility to other devices unless manually blocked by complex ACLs]
 
-MODEL 2: Machine Share (Node-Level Isolation) - RECOMMENDED!
+MODEL 2: Machine Share (Node-Level Isolation - RECOMMENDED!)
 Host PC ('Hemz' Game Server)
    │ (Single-Device Machine Share)
    ▼
 Friend's Personal Tailscale Account
    │
-   └── [Friend can ONLY connect to Host PC, nothing else on your network]
+   └── [Friend can ONLY reach the Game Server PC, never other devices on your network]
 ```
 
 ### Why Machine Share is Superior for Gaming
@@ -38,24 +36,70 @@ Friend's Personal Tailscale Account
 2. Locate your PC in the Machines list (e.g. `hemz`).
 3. Click the **three dots menu (`...`)** on the right side of your machine row.
 4. Click **Share...**.
-5. Select **"Generate a share link"**.
+5. Choose your link type:
+   - **Reusable Share Link**: Supports multiple friends using the same link. Reusable links expire after **30 days** if unused.
+   - **Single-Use Share Link**: For one specific friend.
 6. Copy the generated HTTPS link (e.g. `https://login.tailscale.com/a/...`) and send it to your friend on Discord or WhatsApp.
 
-> [!NOTE]
-> Tailscale share links are single-use and expire after a period if unused. Once your friend accepts the link in their browser, the machine share remains active permanently until you revoke it.
+---
+
+## 🛡️ Port-Level Security: Tailscale ACL Grants for `autogroup:shared`
+
+By default, sharing a machine grants network reachability to that machine, but Tailscale recommends **restricting shared users strictly to authorized game ports**.
+
+Without this rule, a shared user might probe non-game services running on your Windows machine (like Windows File Sharing SMB port 445, Remote Desktop port 3389, or Minecraft RCON port 25575).
+
+### How to Apply the Port Restriction:
+1. Open the **Tailscale Access Controls (ACLs) Editor**:
+   👉 [https://login.tailscale.com/admin/acls](https://login.tailscale.com/admin/acls)
+2. Add a rule for `autogroup:shared` allowing **ONLY** Minecraft Java (`tcp:25565`) and Palworld (`udp:8211`):
+
+```json
+{
+  "hosts": {
+    "game-server": "100.97.56.52"
+  },
+  "acls": [
+    // Restrict all shared friends strictly to Palworld & Minecraft Java:
+    {
+      "action": "accept",
+      "src": ["autogroup:shared"],
+      "dst": [
+        "game-server:25565",
+        "game-server:8211"
+      ]
+    },
+    // Keep full access for your own tailnet devices:
+    {
+      "action": "accept",
+      "src": ["autogroup:member"],
+      "dst": ["*:*"]
+    }
+  ],
+  "grants": [
+    {
+      "src": ["autogroup:shared"],
+      "dst": ["game-server"],
+      "app": {
+        "tailscale.com/cap/connect": [
+          {
+            "ports": ["tcp:25565", "udp:8211"]
+          }
+        ]
+      }
+    }
+  ]
+}
+```
+
+3. Save the ACL file.
+4. Now, even if a friend is connected to your machine via Tailscale, they can **only communicate on ports 25565 (TCP) and 8211 (UDP)**. All other ports on your PC are cryptographically blocked by Tailscale before reaching your operating system!
 
 ---
 
 ## ⚡ NAT Traversal & Connection Types
 
-Tailscale uses intelligent NAT traversal to connect you and your friend:
-
 | Connection Mode | Description | Gaming Latency |
 | :--- | :--- | :--- |
 | **Direct Peer-to-Peer** | Tailscale negotiates direct UDP WireGuard tunnels through your home routers using STUN. | **Lowest possible ping** (identical to LAN/direct connection). |
 | **DERP Relay** | If both routers use strict symmetric NAT or cellular carrier-grade NAT (CGNAT) that blocks direct UDP, traffic is securely relayed via Tailscale's encrypted DERP relays. | Adds ~10-40ms relay latency, but guarantees 100% connectivity where Hamachi fails! |
-
-You can check connection mode in `Host-Dashboard.bat` or by typing:
-```cmd
-tailscale ping <FRIEND_IP>
-```

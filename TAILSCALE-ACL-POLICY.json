@@ -1,0 +1,51 @@
+// Tailscale Access Control Policy (ACL) - Game Server Hardening
+// Copy-paste this into your Tailscale Admin Console:
+// https://login.tailscale.com/admin/acls
+{
+  // Define hosts / aliases
+  "hosts": {
+    "game-server": "100.97.56.52"
+  },
+
+  // Tag definitions (optional, if you tag your server device)
+  "tagOwners": {
+    "tag:game-server": ["autogroup:admin"]
+  },
+
+  // Access Control Lists (ACL Rules)
+  "acls": [
+    // 1. Strict Game Server Access for Shared Friends (autogroup:shared)
+    // Friends connecting via Machine Share can ONLY reach Minecraft Java (TCP 25565) and Palworld (UDP 8211).
+    // All other ports (RCON 25575, SMB 445, RDP 3389, RPC, SSH) are blocked automatically.
+    {
+      "action": "accept",
+      "src": ["autogroup:shared"],
+      "dst": [
+        "game-server:25565",
+        "game-server:8211"
+      ]
+    },
+
+    // 2. Full Access for your own personal devices on your tailnet
+    {
+      "action": "accept",
+      "src": ["autogroup:member"],
+      "dst": ["*:*"]
+    }
+  ],
+
+  // Tailscale Grants syntax (Tailscale v1.40+)
+  "grants": [
+    {
+      "src": ["autogroup:shared"],
+      "dst": ["game-server"],
+      "app": {
+        "tailscale.com/cap/connect": [
+          {
+            "ports": ["tcp:25565", "udp:8211"]
+          }
+        ]
+      }
+    }
+  ]
+}
