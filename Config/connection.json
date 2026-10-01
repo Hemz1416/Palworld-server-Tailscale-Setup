@@ -6,8 +6,8 @@
   "serverMagicDnsName": "",
   "serverTailscaleIp": "100.97.56.52",
   "tailscaleInviteUrl": "",
-  "serverPassword": "",
-  "palworldServerPassword": "",
+  "serverPassword": "clown123",
+  "palworldServerPassword": "clown123",
   "palworldExecutableHint": "",
   "connectionTimeoutSeconds": 30
 }
