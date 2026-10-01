@@ -7,21 +7,38 @@ public partial class ConnectInstructionsDialog : Window
     private readonly string _serverAddress;
     private readonly string _serverPassword;
 
-    public ConnectInstructionsDialog(string serverAddress, string serverPassword)
+    public ConnectInstructionsDialog(string serverAddress, string? serverPassword, bool isPalworld = false)
     {
         InitializeComponent();
         _serverAddress = serverAddress;
-        _serverPassword = serverPassword;
+        _serverPassword = serverPassword ?? string.Empty;
 
-        TxtServerAddress.Text = _serverAddress;
-        if (!string.IsNullOrWhiteSpace(_serverPassword))
+        if (isPalworld)
         {
-            TxtServerPassword.Text = _serverPassword;
-            BtnCopyPassword.Visibility = Visibility.Visible;
+            Title = "How to Connect in Palworld";
+            TxtDialogTitle.Text = "CONNECTING TO HEMZ PALWORLD";
+            PanelPalworldSteps.Visibility = Visibility.Visible;
+            PanelMinecraftSteps.Visibility = Visibility.Collapsed;
+            TxtPalworldServerAddress.Text = _serverAddress;
+
+            if (!string.IsNullOrWhiteSpace(_serverPassword))
+            {
+                TxtPalworldServerPassword.Text = _serverPassword;
+                BtnCopyPassword.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                TxtPalworldServerPassword.Text = "(None configured)";
+                BtnCopyPassword.Visibility = Visibility.Collapsed;
+            }
         }
         else
         {
-            TxtServerPassword.Text = "(None configured)";
+            Title = "How to Connect in Minecraft: Java Edition";
+            TxtDialogTitle.Text = "CONNECTING TO HEMZ MINECRAFT SERVER";
+            PanelPalworldSteps.Visibility = Visibility.Collapsed;
+            PanelMinecraftSteps.Visibility = Visibility.Visible;
+            TxtMinecraftServerAddress.Text = _serverAddress;
             BtnCopyPassword.Visibility = Visibility.Collapsed;
         }
     }

@@ -10,6 +10,8 @@ public class UserSettings
 {
     public bool RememberPassword { get; set; } = false;
     public string CustomPalworldExePath { get; set; } = string.Empty;
+    public string CustomMinecraftExePath { get; set; } = string.Empty;
+    public string SelectedGame { get; set; } = "Minecraft";
 }
 
 public static class ConfigManager

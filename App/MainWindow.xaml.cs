@@ -21,9 +21,15 @@ public partial class MainWindow : Window
 
     private string? _discoveredServerIp;
     private string? _discoveredServerName;
-    private string? _detectedPalworldExe;
+    private string? _detectedMinecraftPath;
+    private string? _detectedPalworldPath;
     private bool _isPasswordRevealed = false;
     private CancellationTokenSource? _authPollCts;
+
+    private bool IsPalworldSelected => RadioPalworld?.IsChecked == true;
+    private int ActivePort => IsPalworldSelected ? 8211 : 25565;
+    private string ActiveProto => IsPalworldSelected ? "UDP" : "TCP";
+    private string ActiveGameName => IsPalworldSelected ? "Hemz Palworld Server" : "Hemz Minecraft Server";
 
     public MainWindow()
     {
@@ -37,21 +43,34 @@ public partial class MainWindow : Window
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
         Logger.Initialize("1.0.0");
-        ApplyConfigToUI();
 
-        // 1. Check Windows compatibility
+        // 1. Detect game installations
+        _detectedMinecraftPath = GameDetector.DetectMinecraft(_config.MinecraftExecutableHint);
+        _detectedPalworldPath = GameDetector.DetectPalworld(_config.PalworldExecutableHint);
+
+        // 2. Select initial game from user settings (defaulting to Minecraft if unspecified)
+        string savedGame = ConfigManager.Settings.SelectedGame;
+        if (string.Equals(savedGame, "Palworld", StringComparison.OrdinalIgnoreCase))
+        {
+            RadioPalworld.IsChecked = true;
+        }
+        else
+        {
+            RadioMinecraft.IsChecked = true;
+        }
+
+        ApplyGameModeUI();
+
+        // 3. Check Windows architecture
         if (!Environment.Is64BitOperatingSystem)
         {
-            MessageBox.Show(this, "Palworld and Tailscale require a 64-bit version of Windows.", "Unsupported System", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(this, "Game dedicated servers and Tailscale require a 64-bit version of Windows.", "Unsupported System", MessageBoxButton.OK, MessageBoxImage.Error);
             Logger.Log("[FATAL] 32-bit Windows detected; aborting.");
             Close();
             return;
         }
 
-        // 2. Detect Palworld game
-        CheckPalworldInstallation();
-
-        // 3. Begin Tailscale & Shared Server connection workflow
+        // 4. Begin Tailscale & Shared Server connection workflow
         await InitializeConnectionWorkflowAsync();
     }
 
@@ -60,49 +79,89 @@ public partial class MainWindow : Window
         _authPollCts?.Cancel();
     }
 
-    private void ApplyConfigToUI()
+    private void GameSelection_Changed(object sender, RoutedEventArgs e)
     {
-        TxtHeaderTitle.Text = string.IsNullOrWhiteSpace(_config.AppName) ? "TAILSCALE CONNECTION SETUP" : _config.AppName.ToUpperInvariant();
-        TxtHeaderSubtitle.Text = $"Private Tailscale Connection to the Shared {_config.ServerName} Machine";
-        TxtServerName.Text = _config.ServerName;
+        if (!IsLoaded) return;
+
+        var settings = ConfigManager.Settings;
+        settings.SelectedGame = IsPalworldSelected ? "Palworld" : "Minecraft";
+        ConfigManager.SaveUserSettings(settings);
+
+        ApplyGameModeUI();
+
+        if (!string.IsNullOrWhiteSpace(_discoveredServerIp))
+        {
+            _ = ProbeActiveServerAsync();
+        }
+    }
+
+    private void ApplyGameModeUI()
+    {
+        TxtHeaderTitle.Text = string.IsNullOrWhiteSpace(_config.AppName) 
+            ? "HEMZ TAILSCALE CONNECTION SETUP" 
+            : _config.AppName.ToUpperInvariant();
+
+        TxtHeaderSubtitle.Text = $"Private Tailscale Connection to the Shared {ActiveGameName} Machine";
+        TxtServerName.Text = ActiveGameName;
         TxtServerDevice.Text = !string.IsNullOrWhiteSpace(_config.ServerMagicDnsName) 
             ? _config.ServerMagicDnsName 
             : _config.ServerDeviceName;
 
-        string proto = _config.ServerPort == 25565 ? "TCP" : (_config.ServerPort == 8211 ? "UDP" : "Port");
-        LblPortDiag.Text = $"{proto} {_config.ServerPort} Diagnostic:";
+        LblPortDiag.Text = $"{ActiveProto} {ActivePort} Diagnostic:";
 
-        bool isMinecraft = _config.ServerName.Contains("Minecraft", StringComparison.OrdinalIgnoreCase) || _config.ServerPort == 25565;
-        LblGameClient.Text = isMinecraft ? "MINECRAFT GAME CLIENT" : (_config.ServerPort == 8211 ? "PALWORLD GAME CLIENT" : "GAME CLIENT");
-        BtnBrowseGame.Content = isMinecraft ? "Browse Minecraft" : (_config.ServerPort == 8211 ? "Browse Palworld.exe" : "Browse Executable");
-        BtnConnectGame.Content = isMinecraft ? "CONNECT TO MINECRAFT" : (_config.ServerPort == 8211 ? "CONNECT TO PALWORLD" : "CONNECT & COPY");
-
-        ChkRememberPassword.IsChecked = ConfigManager.Settings.RememberPassword;
-
-        if (string.IsNullOrWhiteSpace(_config.PalworldServerPassword))
+        if (!string.IsNullOrWhiteSpace(_discoveredServerIp))
         {
-            TxtPasswordMasked.Text = "(None configured)";
-            BtnTogglePassword.Visibility = Visibility.Collapsed;
+            TxtServerAddress.Text = $"{_discoveredServerIp}:{ActivePort}";
+        }
+
+        if (IsPalworldSelected)
+        {
+            CardCredentials.Visibility = Visibility.Visible;
+            ChkRememberPassword.IsChecked = ConfigManager.Settings.RememberPassword;
+
+            if (string.IsNullOrWhiteSpace(_config.PalworldServerPassword))
+            {
+                TxtPasswordMasked.Text = "(None configured)";
+                BtnTogglePassword.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                TxtPasswordMasked.Text = _isPasswordRevealed ? _config.PalworldServerPassword : "••••••••••••";
+                BtnTogglePassword.Visibility = Visibility.Visible;
+            }
+
+            LblGameClient.Text = "PALWORLD GAME CLIENT";
+            BtnBrowseGame.Content = "Browse Palworld.exe";
+            BtnConnectGame.Content = "CONNECT TO PALWORLD";
+
+            if (!string.IsNullOrWhiteSpace(_detectedPalworldPath))
+            {
+                TxtGameClientPath.Text = _detectedPalworldPath;
+                TxtGameClientPath.Foreground = new SolidColorBrush(Color.FromRgb(0x34, 0xD3, 0x99));
+            }
+            else
+            {
+                TxtGameClientPath.Text = "Palworld.exe not auto-detected (Click 'Browse Palworld.exe' or launch manually)";
+                TxtGameClientPath.Foreground = new SolidColorBrush(Color.FromRgb(0xF5, 0x9E, 0x0B));
+            }
         }
         else
         {
-            TxtPasswordMasked.Text = "••••••••••••";
-            BtnTogglePassword.Visibility = Visibility.Visible;
-        }
-    }
+            CardCredentials.Visibility = Visibility.Collapsed;
+            LblGameClient.Text = "MINECRAFT GAME CLIENT";
+            BtnBrowseGame.Content = "Browse Minecraft";
+            BtnConnectGame.Content = "CONNECT TO MINECRAFT";
 
-    private void CheckPalworldInstallation()
-    {
-        _detectedPalworldExe = PalworldDetector.DetectPalworldExecutable(_config.PalworldExecutableHint);
-        if (_detectedPalworldExe != null)
-        {
-            TxtPalworldDetectedPath.Text = _detectedPalworldExe;
-            TxtPalworldDetectedPath.Foreground = new SolidColorBrush(Color.FromRgb(0x34, 0xD3, 0x99));
-        }
-        else
-        {
-            TxtPalworldDetectedPath.Text = "Not detected automatically (Use 'Browse Palworld.exe' if needed)";
-            TxtPalworldDetectedPath.Foreground = new SolidColorBrush(Color.FromRgb(0xF5, 0x9E, 0x0B));
+            if (!string.IsNullOrWhiteSpace(_detectedMinecraftPath))
+            {
+                TxtGameClientPath.Text = _detectedMinecraftPath;
+                TxtGameClientPath.Foreground = new SolidColorBrush(Color.FromRgb(0x34, 0xD3, 0x99));
+            }
+            else
+            {
+                TxtGameClientPath.Text = "Minecraft launcher not auto-detected (Click 'Browse Minecraft' or launch manually)";
+                TxtGameClientPath.Foreground = new SolidColorBrush(Color.FromRgb(0xF5, 0x9E, 0x0B));
+            }
         }
     }
 
@@ -119,7 +178,7 @@ public partial class MainWindow : Window
             UpdateBadge(BadgeTailscale, TxtBadgeTailscale, "● Tailscale: Missing", "#EF4444");
 
             var result = MessageBox.Show(this,
-                "Tailscale is required to connect to the shared Hemz Palworld Dedicated Server machine.\n\nWould you like this application to automatically download and install official Tailscale now?",
+                $"Tailscale is required to connect to the shared {ActiveGameName} machine.\n\nWould you like this application to automatically download and install official Tailscale now?",
                 "Tailscale Required",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Question);
@@ -199,15 +258,11 @@ public partial class MainWindow : Window
             UpdateBadge(BadgeTailscale, TxtBadgeTailscale, "● Tailscale: Sign-in Needed", "#EF4444");
             BannerAuthRequired.Visibility = Visibility.Visible;
 
-            // Automatically open invite URL if configured
             OpenInviteUrl();
-
-            // Start polling for authentication completion
             StartAuthPolling();
             return;
         }
 
-        // Authenticated!
         BannerAuthRequired.Visibility = Visibility.Collapsed;
         _authPollCts?.Cancel();
 
@@ -216,7 +271,6 @@ public partial class MainWindow : Window
         TxtClientStatus.Text = "Authenticated & Connected";
         UpdateBadge(BadgeTailscale, TxtBadgeTailscale, "● Tailscale: Connected", "#10B981");
 
-        // Discover Shared Server Machine
         await DiscoverAndProbeServerAsync(status);
     }
 
@@ -249,7 +303,6 @@ public partial class MainWindow : Window
     {
         UpdateBadge(BadgeServer, TxtBadgeServer, "● Host PC: Discovering...", "#F59E0B");
 
-        // Perform discovery
         var (discoveredIp, discoveredName, discoveryMethod) = await _tailscale.DiscoverSharedServerAsync(_config, status);
         _discoveredServerIp = discoveredIp;
         _discoveredServerName = discoveredName;
@@ -267,16 +320,21 @@ public partial class MainWindow : Window
         }
 
         TxtServerDevice.Text = _discoveredServerName ?? _config.ServerDeviceName;
-        string fullAddress = $"{_discoveredServerIp}:{_config.ServerPort}";
+        await ProbeActiveServerAsync();
+    }
+
+    private async Task ProbeActiveServerAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_discoveredServerIp)) return;
+
+        string fullAddress = $"{_discoveredServerIp}:{ActivePort}";
         TxtServerAddress.Text = fullAddress;
         TxtServerAddress.Foreground = new SolidColorBrush(Color.FromRgb(0x38, 0xBD, 0xF8));
 
-        // Test reachability probe via Tailscale ping
-        var probe = await _networkProbe.TestConnectionAsync(_discoveredServerIp, _config.ServerPort);
+        var probe = await _networkProbe.TestConnectionAsync(_discoveredServerIp, ActivePort);
         TxtConnectionPath.Text = probe.PathType;
         TxtLatency.Text = probe.DeviceReachable ? $"{probe.LatencyMs:F1} ms" : "Unreachable";
-        string portProto = _config.ServerPort == 25565 ? "TCP" : (_config.ServerPort == 8211 ? "UDP" : "Port");
-        TxtUdpPort.Text = probe.DeviceReachable ? $"{portProto} {_config.ServerPort}: Host Reachable (Verify in-game)" : "Host Unreachable";
+        TxtUdpPort.Text = probe.DeviceReachable ? $"{ActiveProto} {ActivePort}: Host Reachable (Verify in-game)" : "Host Unreachable";
 
         if (probe.DeviceReachable)
         {
@@ -286,7 +344,7 @@ public partial class MainWindow : Window
         else
         {
             UpdateBadge(BadgeServer, TxtBadgeServer, "● Host PC: Unreachable", "#EF4444");
-            BtnConnectGame.IsEnabled = true; // Still allow friend to launch Palworld
+            BtnConnectGame.IsEnabled = true;
         }
     }
 
@@ -318,7 +376,6 @@ public partial class MainWindow : Window
             }
         }
 
-        // Never log the actual invitation URL
         Logger.Log("Opening Tailscale shared machine invitation in browser: [REDACTED]");
         try
         {
@@ -334,8 +391,6 @@ public partial class MainWindow : Window
         }
     }
 
-    // Button event handlers
-
     private void BtnOpenInvite_Click(object sender, RoutedEventArgs e)
     {
         OpenInviteUrl();
@@ -349,18 +404,28 @@ public partial class MainWindow : Window
             return;
         }
 
-        string fullAddress = $"{_discoveredServerIp}:{_config.ServerPort}";
+        string fullAddress = $"{_discoveredServerIp}:{ActivePort}";
         Clipboard.SetText(fullAddress);
         Logger.Log($"Copied server address to clipboard: {fullAddress}");
 
-        // Attempt to launch Palworld
-        if (_detectedPalworldExe != null && File.Exists(_detectedPalworldExe))
+        // Attempt to launch the selected game client
+        if (IsPalworldSelected)
         {
-            PalworldDetector.LaunchGame(_detectedPalworldExe);
+            if (!string.IsNullOrWhiteSpace(_detectedPalworldPath) && (File.Exists(_detectedPalworldPath) || Directory.Exists(_detectedPalworldPath)))
+            {
+                GameDetector.LaunchGame(_detectedPalworldPath);
+            }
+        }
+        else
+        {
+            if (!string.IsNullOrWhiteSpace(_detectedMinecraftPath) && (File.Exists(_detectedMinecraftPath) || Directory.Exists(_detectedMinecraftPath)))
+            {
+                GameDetector.LaunchGame(_detectedMinecraftPath);
+            }
         }
 
         // Show instruction dialog
-        var dialog = new ConnectInstructionsDialog(fullAddress, _config.PalworldServerPassword)
+        var dialog = new ConnectInstructionsDialog(fullAddress, IsPalworldSelected ? _config.PalworldServerPassword : null, IsPalworldSelected)
         {
             Owner = this
         };
@@ -371,7 +436,7 @@ public partial class MainWindow : Window
     {
         if (!string.IsNullOrWhiteSpace(_discoveredServerIp))
         {
-            string fullAddress = $"{_discoveredServerIp}:{_config.ServerPort}";
+            string fullAddress = $"{_discoveredServerIp}:{ActivePort}";
             Clipboard.SetText(fullAddress);
             MessageBox.Show(this, $"Copied server address to clipboard:\n{fullAddress}", "Address Copied", MessageBoxButton.OK, MessageBoxImage.Information);
         }
@@ -414,24 +479,47 @@ public partial class MainWindow : Window
         ConfigManager.SaveUserSettings(settings);
     }
 
-    private void BtnBrowsePalworld_Click(object sender, RoutedEventArgs e)
+    private void BtnBrowseGame_Click(object sender, RoutedEventArgs e)
     {
-        var ofd = new OpenFileDialog
+        if (IsPalworldSelected)
         {
-            Title = "Select Palworld Executable (Palworld.exe)",
-            Filter = "Palworld Executable (Palworld*.exe)|Palworld*.exe|All Executables (*.exe)|*.exe"
-        };
+            var ofd = new OpenFileDialog
+            {
+                Title = "Select Palworld Executable (Palworld.exe)",
+                Filter = "Palworld Executable (*.exe;*.lnk)|*.exe;*.lnk|All Files (*.*)|*.*"
+            };
 
-        if (ofd.ShowDialog(this) == true)
+            if (ofd.ShowDialog(this) == true)
+            {
+                _detectedPalworldPath = ofd.FileName;
+                TxtGameClientPath.Text = _detectedPalworldPath;
+                TxtGameClientPath.Foreground = new SolidColorBrush(Color.FromRgb(0x34, 0xD3, 0x99));
+
+                var settings = ConfigManager.Settings;
+                settings.CustomPalworldExePath = _detectedPalworldPath;
+                ConfigManager.SaveUserSettings(settings);
+                Logger.Log($"User selected Palworld executable: {_detectedPalworldPath}");
+            }
+        }
+        else
         {
-            _detectedPalworldExe = ofd.FileName;
-            TxtPalworldDetectedPath.Text = _detectedPalworldExe;
-            TxtPalworldDetectedPath.Foreground = new SolidColorBrush(Color.FromRgb(0x34, 0xD3, 0x99));
+            var ofd = new OpenFileDialog
+            {
+                Title = "Select Minecraft Launcher or Executable",
+                Filter = "Minecraft Launchers (*.exe;*.lnk)|*.exe;*.lnk|All Files (*.*)|*.*"
+            };
 
-            var settings = ConfigManager.Settings;
-            settings.CustomPalworldExePath = _detectedPalworldExe;
-            ConfigManager.SaveUserSettings(settings);
-            Logger.Log($"User manually selected Palworld exe: {_detectedPalworldExe}");
+            if (ofd.ShowDialog(this) == true)
+            {
+                _detectedMinecraftPath = ofd.FileName;
+                TxtGameClientPath.Text = _detectedMinecraftPath;
+                TxtGameClientPath.Foreground = new SolidColorBrush(Color.FromRgb(0x34, 0xD3, 0x99));
+
+                var settings = ConfigManager.Settings;
+                settings.CustomMinecraftExePath = _detectedMinecraftPath;
+                ConfigManager.SaveUserSettings(settings);
+                Logger.Log($"User selected Minecraft launcher: {_detectedMinecraftPath}");
+            }
         }
     }
 

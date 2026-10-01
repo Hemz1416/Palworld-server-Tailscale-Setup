@@ -1,7 +1,7 @@
 <Window x:Class="HemzPalworldConnectionSetup.Views.ConnectInstructionsDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="How to Connect in Palworld"
+        Title="How to Connect to Server"
         Height="540" Width="680"
         WindowStartupLocation="CenterOwner"
         Background="#0F1117" Foreground="#F3F4F6"
@@ -18,81 +18,149 @@
         <!-- Header -->
         <Border Grid.Row="0" Background="#1A1D27" CornerRadius="8" Padding="16" BorderBrush="#2563EB" BorderThickness="1.5">
             <StackPanel>
-                <TextBlock Text="CONNECTING TO HEMZ PALWORLD" FontWeight="Bold" FontSize="20" Foreground="#60A5FA"/>
+                <TextBlock Name="TxtDialogTitle" Text="CONNECTING TO SERVER" FontWeight="Bold" FontSize="20" Foreground="#60A5FA"/>
                 <TextBlock Text="Server address has been automatically copied to your clipboard!" Foreground="#34D399" FontWeight="SemiBold" FontSize="13" Margin="0,4,0,0"/>
             </StackPanel>
         </Border>
 
         <!-- Step-by-Step Instructions -->
         <Border Grid.Row="1" Background="#161923" CornerRadius="8" Padding="20" Margin="0,16,0,16" BorderBrush="#242938" BorderThickness="1">
-            <StackPanel>
-                <TextBlock Text="In-Game Connection Steps:" FontWeight="Bold" FontSize="15" Foreground="#F9FAFB" Margin="0,0,0,12"/>
+            <Grid>
+                <!-- Minecraft Steps -->
+                <StackPanel Name="PanelMinecraftSteps">
+                    <TextBlock Text="Minecraft: Java Edition Connection Steps:" FontWeight="Bold" FontSize="15" Foreground="#F9FAFB" Margin="0,0,0,12"/>
 
-                <Grid Margin="0,0,0,10">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="32"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Border Background="#2563EB" Width="24" Height="24" CornerRadius="12">
-                        <TextBlock Text="1" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
-                    <TextBlock Grid.Column="1" Text="In the Palworld main menu, click 'Join Multiplayer Game'." VerticalAlignment="Center" FontSize="13" Foreground="#D1D5DB"/>
-                </Grid>
-
-                <Grid Margin="0,0,0,10">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="32"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Border Background="#2563EB" Width="24" Height="24" CornerRadius="12">
-                        <TextBlock Text="2" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
-                    <TextBlock Grid.Column="1" Text="Look at the direct connection box at the bottom of the screen." VerticalAlignment="Center" FontSize="13" Foreground="#D1D5DB"/>
-                </Grid>
-
-                <Grid Margin="0,0,0,10">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="32"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Border Background="#2563EB" Width="24" Height="24" CornerRadius="12">
-                        <TextBlock Text="3" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
-                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                        <TextBlock Text="Paste the server address (Ctrl+V):" FontSize="13" Foreground="#D1D5DB"/>
-                        <Border Background="#0B0D13" Padding="8,4" CornerRadius="4" Margin="0,4,0,0" HorizontalAlignment="Left">
-                            <TextBlock Name="TxtServerAddress" Text="100.x.x.x:8211" FontWeight="Bold" Foreground="#38BDF8" FontFamily="Consolas" FontSize="14"/>
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="32"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Background="#2563EB" Width="24" Height="24" CornerRadius="12">
+                            <TextBlock Text="1" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
-                    </StackPanel>
-                </Grid>
+                        <TextBlock Grid.Column="1" Text="Launch Minecraft: Java Edition." VerticalAlignment="Center" FontSize="13" Foreground="#D1D5DB"/>
+                    </Grid>
 
-                <Grid Margin="0,0,0,10">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="32"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Border Background="#2563EB" Width="24" Height="24" CornerRadius="12">
-                        <TextBlock Text="4" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
-                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                        <TextBlock Text="Enter the server password when prompted:" FontSize="13" Foreground="#D1D5DB"/>
-                        <Border Background="#0B0D13" Padding="8,4" CornerRadius="4" Margin="0,4,0,0" HorizontalAlignment="Left">
-                            <TextBlock Name="TxtServerPassword" Text="••••••••" FontWeight="Bold" Foreground="#FBBF24" FontFamily="Consolas" FontSize="14"/>
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="32"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Background="#2563EB" Width="24" Height="24" CornerRadius="12">
+                            <TextBlock Text="2" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
-                    </StackPanel>
-                </Grid>
+                        <TextBlock Grid.Column="1" Text="From the main menu, click 'Multiplayer'." VerticalAlignment="Center" FontSize="13" Foreground="#D1D5DB"/>
+                    </Grid>
 
-                <Grid Margin="0,0,0,0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="32"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Border Background="#10B981" Width="24" Height="24" CornerRadius="12">
-                        <TextBlock Text="5" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
-                    <TextBlock Grid.Column="1" Text="Click 'Connect' and enjoy the game!" VerticalAlignment="Center" FontSize="13" Foreground="#D1D5DB"/>
-                </Grid>
-            </StackPanel>
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="32"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Background="#2563EB" Width="24" Height="24" CornerRadius="12">
+                            <TextBlock Text="3" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Grid.Column="1" Text="Click 'Direct Connection' (or 'Add Server')." VerticalAlignment="Center" FontSize="13" Foreground="#D1D5DB"/>
+                    </Grid>
+
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="32"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Background="#2563EB" Width="24" Height="24" CornerRadius="12">
+                            <TextBlock Text="4" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="Paste the server address (Ctrl+V):" FontSize="13" Foreground="#D1D5DB"/>
+                            <Border Background="#0B0D13" Padding="8,4" CornerRadius="4" Margin="0,4,0,0" HorizontalAlignment="Left">
+                                <TextBlock Name="TxtMinecraftServerAddress" Text="100.x.x.x:25565" FontWeight="Bold" Foreground="#38BDF8" FontFamily="Consolas" FontSize="14"/>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid Margin="0,0,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="32"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Background="#10B981" Width="24" Height="24" CornerRadius="12">
+                            <TextBlock Text="5" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Grid.Column="1" Text="Click 'Join Server' to connect and play!" VerticalAlignment="Center" FontSize="13" Foreground="#D1D5DB"/>
+                    </Grid>
+                </StackPanel>
+
+                <!-- Palworld Steps -->
+                <StackPanel Name="PanelPalworldSteps" Visibility="Collapsed">
+                    <TextBlock Text="Palworld Dedicated Connection Steps:" FontWeight="Bold" FontSize="15" Foreground="#F9FAFB" Margin="0,0,0,12"/>
+
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="32"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Background="#2563EB" Width="24" Height="24" CornerRadius="12">
+                            <TextBlock Text="1" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Grid.Column="1" Text="In the Palworld main menu, click 'Join Multiplayer Game'." VerticalAlignment="Center" FontSize="13" Foreground="#D1D5DB"/>
+                    </Grid>
+
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="32"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Background="#2563EB" Width="24" Height="24" CornerRadius="12">
+                            <TextBlock Text="2" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Grid.Column="1" Text="Look at the direct connection input box at the bottom of the screen." VerticalAlignment="Center" FontSize="13" Foreground="#D1D5DB"/>
+                    </Grid>
+
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="32"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Background="#2563EB" Width="24" Height="24" CornerRadius="12">
+                            <TextBlock Text="3" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="Paste the server address (Ctrl+V):" FontSize="13" Foreground="#D1D5DB"/>
+                            <Border Background="#0B0D13" Padding="8,4" CornerRadius="4" Margin="0,4,0,0" HorizontalAlignment="Left">
+                                <TextBlock Name="TxtPalworldServerAddress" Text="100.x.x.x:8211" FontWeight="Bold" Foreground="#38BDF8" FontFamily="Consolas" FontSize="14"/>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="32"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Background="#2563EB" Width="24" Height="24" CornerRadius="12">
+                            <TextBlock Text="4" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="Enter the server password when prompted:" FontSize="13" Foreground="#D1D5DB"/>
+                            <Border Background="#0B0D13" Padding="8,4" CornerRadius="4" Margin="0,4,0,0" HorizontalAlignment="Left">
+                                <TextBlock Name="TxtPalworldServerPassword" Text="••••••••" FontWeight="Bold" Foreground="#FBBF24" FontFamily="Consolas" FontSize="14"/>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid Margin="0,0,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="32"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Background="#10B981" Width="24" Height="24" CornerRadius="12">
+                            <TextBlock Text="5" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Grid.Column="1" Text="Click 'Connect' and enjoy playing with Hemz!" VerticalAlignment="Center" FontSize="13" Foreground="#D1D5DB"/>
+                    </Grid>
+                </StackPanel>
+            </Grid>
         </Border>
 
         <!-- Buttons -->
