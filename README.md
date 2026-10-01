@@ -120,18 +120,3 @@ Friend's Personal Tailscale Account
 * **Revocable Anytime:** Revoke access instantly from [Tailscale Admin Machines](https://login.tailscale.com/admin/machines).
 * **Single-Use Invitations:** Share links expire once accepted, establishing secure peer-to-peer node authentication.
 
----
-
-## 🛠️ GitHub Repository Renaming
-
-To reflect this setup on GitHub:
-
-1. **Go to GitHub Repository Settings:**
-   👉 [https://github.com/Hemz1416/Palworld-server-Tailscale-Setup/settings](https://github.com/Hemz1416/Palworld-server-Tailscale-Setup/settings)
-2. In the **Repository name** box, change:
-   `Palworld-server-Tailscale-Setup` ➔ `Tailscale-Setup`
-3. Click **Rename**.
-4. Update your local git remote URL:
-   ```cmd
-   git remote set-url origin https://github.com/Hemz1416/Tailscale-Setup.git
-   ```
