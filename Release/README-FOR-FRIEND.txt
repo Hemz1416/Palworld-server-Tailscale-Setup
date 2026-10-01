@@ -1,48 +1,50 @@
-﻿================================================================================
-                    HEMZ PALWORLD DEDICATED SERVER
-                        PLAYER CONNECTION GUIDE
+================================================================================
+                    HEMZ TAILSCALE GAME SERVER CONNECTION GUIDE
 ================================================================================
 
-Welcome! This package allows you to connect securely to the shared Hemz Palworld
-server machine through Tailscale.
+Welcome! This package allows you to connect securely to Hemz's hosted game
+servers over Tailscale with zero port forwarding and the lowest possible ping.
 
 --------------------------------------------------------------------------------
-HOW TO CONNECT (SIMPLE 3-STEP GUIDE)
+OPTION A: 1-CLICK QUICK JOIN BATCH SCRIPT (FASTEST & LIGHTWEIGHT)
 --------------------------------------------------------------------------------
-
-STEP 1: Run the Connection App
-  - Double-click: Hemz-Palworld-Connection-Setup.exe
-  - If Tailscale is not installed on your PC, the app will ask to download and
-    install official Tailscale automatically. Click YES when Windows asks for
-    permission.
-
-STEP 2: Sign in to Tailscale & Accept Machine Share
-  - A browser window will open with the Tailscale machine-share invitation.
-  - Sign in with your personal Google, Microsoft, Apple, or GitHub account and
-    accept the invitation to access the shared Palworld server machine.
-    (Note: This grants you private access only to the Palworld server machine,
-    not any other devices or the host's entire tailnet).
-  - Return to Hemz-Palworld-Connection-Setup.exe.
-  - The status will turn GREEN ("Host PC: Reachable") automatically.
-
-STEP 3: Launch Palworld and Play
-  - Click the green button: [ CONNECT TO PALWORLD ]
-  - This automatically copies the server address (e.g., 100.x.x.x:8211) to your
-    Windows clipboard and launches Palworld (if safely detected).
-  - If the server has a password, click [ COPY SERVER PASSWORD ] in the app
-    to copy it when needed (it will not overwrite your clipboard silently).
-  - In the Palworld main menu, click:
-      "Join Multiplayer Game"
-  - In the direct IP connection box at the bottom, paste (Ctrl+V):
-      The server address (e.g., 100.x.x.x:8211)
-  - If prompted for a password, paste the server password.
-  - Click "Connect" and enjoy!
+1. Double-click: Friend-Quick-Join.bat
+2. If Tailscale is not installed, it will automatically download and install it.
+3. Sign in to Tailscale in your browser (or accept Hemz's machine share link).
+4. Select the game you are joining (Minecraft, Palworld, Valheim, Terraria, etc.).
+5. The exact server IP & port is AUTOMATICALLY COPIED to your Windows clipboard!
+6. Launch your game, go to Multiplayer / Direct Connect, and press Ctrl+V to paste!
 
 --------------------------------------------------------------------------------
-NEED HELP?
+OPTION B: GRAPHICAL CONNECTION APP (HEMZ CONNECTION SETUP)
 --------------------------------------------------------------------------------
-- Click the [ TROUBLESHOOT ] button inside the app to run an automated diagnostic
-  check verifying Tailscale, the Tailscale Windows service, shared server
-  discovery, and ping latency.
-- Or click [ OPEN LOG ] to view the local diagnostic log.
+1. Double-click: Hemz-Palworld-Connection-Setup.exe (or Tailscale-Connection-Setup.exe)
+2. Follow the on-screen status badges:
+   - Green [Tailscale: Active]
+   - Green [Host PC: Reachable]
+3. Click [ CONNECT / COPY ADDRESS ] to copy the join address and launch game!
+
+--------------------------------------------------------------------------------
+COMMON GAME IN-GAME JOIN STEPS:
+--------------------------------------------------------------------------------
+- Minecraft (Java Edition):
+    Multiplayer -> Direct Connection -> Paste (Ctrl+V) -> Join Server
+- Minecraft (Bedrock Edition):
+    Play -> Servers tab -> Add Server -> Enter Host IP -> Port 19132
+- Palworld:
+    Join Multiplayer Game -> Bottom IP address bar -> Paste (Ctrl+V) -> Connect
+- Valheim:
+    Start Game -> Join Game -> Join IP -> Paste (Ctrl+V) -> Connect
+- Terraria / tModLoader:
+    Multiplayer -> Join via IP -> Enter Host IP -> Port 7777
+- Project Zomboid:
+    Join -> Direct Connect -> Enter Host IP and Port 16261
+- Rust:
+    Press F1 in-game -> Type: client.connect <HOST_IP>:28015
+
+--------------------------------------------------------------------------------
+NEED HELP / TROUBLESHOOTING:
+--------------------------------------------------------------------------------
+- Verify the Tailscale icon is running in your Windows system tray (bottom-right).
+- If ping fails, ask Hemz to ensure the server is active on Host-Dashboard.bat.
 ================================================================================

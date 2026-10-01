@@ -1,12 +1,13 @@
 {
-    "appName":  "Hemz Palworld Connection Setup",
-    "serverName":  "Hemz Palworld",
-    "serverPort":  8211,
-    "serverDeviceName":  "Hemz",
-    "serverMagicDnsName":  "",
-    "serverTailscaleIp":  "100.97.56.52",
-    "tailscaleInviteUrl":  "",
-    "palworldServerPassword":  "",
-    "palworldExecutableHint":  "",
-    "connectionTimeoutSeconds":  30
+  "appName": "Hemz Tailscale Connection Setup",
+  "serverName": "Hemz Game Server",
+  "serverPort": 25565,
+  "serverDeviceName": "hemz",
+  "serverMagicDnsName": "",
+  "serverTailscaleIp": "100.97.56.52",
+  "tailscaleInviteUrl": "",
+  "serverPassword": "",
+  "palworldServerPassword": "",
+  "palworldExecutableHint": "",
+  "connectionTimeoutSeconds": 30
 }

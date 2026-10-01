@@ -1,5 +1,5 @@
 # Configure-Connection.ps1
-# Interactive configuration tool for Hemz Palworld Connection Setup
+# Interactive configuration tool for Tailscale Game Connection Setup
 [CmdletBinding()]
 param()
 
@@ -7,22 +7,24 @@ $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 if (-not $ScriptDir) { $ScriptDir = $PSScriptRoot }
 $RootDir = Split-Path -Parent $ScriptDir
 $ConfigPath = Join-Path $RootDir "Config\connection.json"
+$PresetsPath = Join-Path $RootDir "Config\games-presets.json"
 
 Write-Host "======================================================================" -ForegroundColor Cyan
-Write-Host "       PALWORLD CONNECTION SETUP - CONFIGURATION BUILDER" -ForegroundColor Cyan
+Write-Host "         TAILSCALE CONNECTION SETUP - CONFIGURATION BUILDER" -ForegroundColor Cyan
 Write-Host "======================================================================" -ForegroundColor Cyan
-Write-Host "Configure the network details and credentials to distribute to friends." -ForegroundColor Gray
+Write-Host "Configure server details, game presets, and credentials to distribute to friends." -ForegroundColor Gray
 Write-Host ""
 
-# Load existing values if present
+# Load existing values
 $existing = [PSCustomObject]@{
-    appName = "Hemz Palworld Connection Setup"
-    serverName = "Hemz Palworld"
-    serverPort = 8211
+    appName = "Hemz Tailscale Connection Setup"
+    serverName = "Hemz Dedicated Game Server"
+    serverPort = 25565
     serverDeviceName = "hemz"
     serverMagicDnsName = ""
-    serverTailscaleIp = ""
+    serverTailscaleIp = "100.97.56.52"
     tailscaleInviteUrl = ""
+    serverPassword = ""
     palworldServerPassword = ""
     palworldExecutableHint = ""
     connectionTimeoutSeconds = 30
@@ -35,51 +37,65 @@ if (Test-Path $ConfigPath) {
     } catch {}
 }
 
-# 1. Server Name
-$sName = Read-Host "1. Palworld Server Name [$($existing.serverName)]"
-if ([string]::IsNullOrWhiteSpace($sName)) { $sName = $existing.serverName }
+# 1. Select Game Preset or Custom
+Write-Host "Select Target Game / Service:" -ForegroundColor Yellow
+Write-Host "  [1] Minecraft: Java Edition (Port 25565)"
+Write-Host "  [2] Minecraft: Bedrock Edition (Port 19132)"
+Write-Host "  [3] Palworld Dedicated Server (Port 8211)"
+Write-Host "  [4] Valheim Dedicated Server (Port 2456)"
+Write-Host "  [5] Terraria / tModLoader (Port 7777)"
+Write-Host "  [6] Enshrouded Dedicated Server (Port 15636)"
+Write-Host "  [7] Custom Game / Custom Port"
+$gameChoice = Read-Host "Choose preset [1-7, Default: 1]"
 
-# 2. Server Port
-$sPortStr = Read-Host "2. Palworld Server Port [$($existing.serverPort)]"
-$sPort = if ([string]::IsNullOrWhiteSpace($sPortStr)) { [int]$existing.serverPort } else { [int]$sPortStr }
+$selectedName = "Minecraft: Java Edition"
+$selectedPort = 25565
 
-# 3. Server Tailscale Device Name
-$sDevice = Read-Host "3. Tailscale Server Device Name (e.g., hemz or msi-laptop) [$($existing.serverDeviceName)]"
-if ([string]::IsNullOrWhiteSpace($sDevice)) { $sDevice = $existing.serverDeviceName }
-
-# 4. Optional MagicDNS Hostname
-$sDns = Read-Host "4. Optional MagicDNS Hostname (press Enter to skip) [$($existing.serverMagicDnsName)]"
-if ([string]::IsNullOrWhiteSpace($sDns)) { $sDns = $existing.serverMagicDnsName }
-
-# 5. Optional Fallback Server Tailscale IPv4
-$sIp = Read-Host "5. Optional Fallback Server Tailscale IPv4 (e.g., 100.x.x.x, leave blank for dynamic discovery) [$($existing.serverTailscaleIp)]"
-if ([string]::IsNullOrWhiteSpace($sIp)) { $sIp = $existing.serverTailscaleIp }
-
-# 6. Tailscale Machine Share Invitation URL
-Write-Host "   (Generate a single-use machine-share link from Tailscale Admin -> Machines -> Share)" -ForegroundColor DarkGray
-$sInvite = Read-Host "6. Tailscale Machine Share Invitation URL (press Enter to skip) [$($existing.tailscaleInviteUrl)]"
-if ([string]::IsNullOrWhiteSpace($sInvite)) { $sInvite = $existing.tailscaleInviteUrl }
-
-# 7. Palworld Server Password
-Write-Host "   SECURITY NOTE: Anyone possessing the compiled EXE may potentially recover the server password." -ForegroundColor DarkYellow
-$sPwd = Read-Host "7. Palworld Server Password [$($existing.palworldServerPassword)]"
-if ([string]::IsNullOrWhiteSpace($sPwd)) { $sPwd = $existing.palworldServerPassword }
-
-# 8. Include password in friend distribution
-$incPwd = Read-Host "8. Include server password in friend configuration package? (Y/N) [Y]"
-if ($incPwd -match "N|no") {
-    $sPwd = ""
-    Write-Host "   -> Password will be omitted from distribution package." -ForegroundColor Yellow
+switch ($gameChoice) {
+    "1" { $selectedName = "Minecraft: Java Edition"; $selectedPort = 25565 }
+    "2" { $selectedName = "Minecraft: Bedrock Edition"; $selectedPort = 19132 }
+    "3" { $selectedName = "Palworld Dedicated Server"; $selectedPort = 8211 }
+    "4" { $selectedName = "Valheim Dedicated Server"; $selectedPort = 2456 }
+    "5" { $selectedName = "Terraria Server"; $selectedPort = 7777 }
+    "6" { $selectedName = "Enshrouded Server"; $selectedPort = 15636 }
+    "7" {
+        $selectedName = Read-Host "Enter Game / Service Name [$($existing.serverName)]"
+        if ([string]::IsNullOrWhiteSpace($selectedName)) { $selectedName = $existing.serverName }
+        $portInput = Read-Host "Enter Server Port [$($existing.serverPort)]"
+        $selectedPort = if ([string]::IsNullOrWhiteSpace($portInput)) { [int]$existing.serverPort } else { [int]$portInput }
+    }
+    Default {
+        if (-not [string]::IsNullOrWhiteSpace($existing.serverName)) { $selectedName = $existing.serverName }
+        if ($existing.serverPort -gt 0) { $selectedPort = [int]$existing.serverPort }
+    }
 }
 
+# 2. Server Tailscale Device Name
+$sDevice = Read-Host "Tailscale Server Device Name [$($existing.serverDeviceName)]"
+if ([string]::IsNullOrWhiteSpace($sDevice)) { $sDevice = $existing.serverDeviceName }
+
+# 3. Server Tailscale IPv4
+$sIp = Read-Host "Server Tailscale IPv4 Address [$($existing.serverTailscaleIp)]"
+if ([string]::IsNullOrWhiteSpace($sIp)) { $sIp = $existing.serverTailscaleIp }
+
+# 4. Tailscale Machine Share Invitation URL
+Write-Host "  (Generate from Tailscale Admin -> Machines -> Share)" -ForegroundColor DarkGray
+$sInvite = Read-Host "Tailscale Machine Share Invitation URL (press Enter to skip) [$($existing.tailscaleInviteUrl)]"
+if ([string]::IsNullOrWhiteSpace($sInvite)) { $sInvite = $existing.tailscaleInviteUrl }
+
+# 5. Optional Server Password
+$sPwd = Read-Host "Optional Server Password (press Enter if none) [$($existing.serverPassword)]"
+if ([string]::IsNullOrWhiteSpace($sPwd)) { $sPwd = $existing.serverPassword }
+
 $newConfig = [ordered]@{
-    appName = "Hemz Palworld Connection Setup"
-    serverName = $sName
-    serverPort = $sPort
+    appName = "Hemz Tailscale Connection Setup"
+    serverName = $selectedName
+    serverPort = $selectedPort
     serverDeviceName = $sDevice
-    serverMagicDnsName = $sDns
+    serverMagicDnsName = ""
     serverTailscaleIp = $sIp
     tailscaleInviteUrl = $sInvite
+    serverPassword = $sPwd
     palworldServerPassword = $sPwd
     palworldExecutableHint = ""
     connectionTimeoutSeconds = 30
@@ -94,7 +110,7 @@ Write-Host "Configuration saved to: $ConfigPath" -ForegroundColor Green
 Write-Host "======================================================================" -ForegroundColor Green
 Write-Host ""
 
-$rebuild = Read-Host "Would you like to build the Release EXE now with these settings? (Y/N) [Y]"
+$rebuild = Read-Host "Would you like to build the Release package now with these settings? (Y/N) [Y]"
 if ($rebuild -notmatch "N|no") {
     & (Join-Path $ScriptDir "Build-Release.ps1")
 }
