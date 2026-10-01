@@ -334,7 +334,7 @@ public partial class MainWindow : Window
         var probe = await _networkProbe.TestConnectionAsync(_discoveredServerIp, ActivePort);
         TxtConnectionPath.Text = probe.PathType;
         TxtLatency.Text = probe.DeviceReachable ? $"{probe.LatencyMs:F1} ms" : "Unreachable";
-        TxtUdpPort.Text = probe.DeviceReachable ? $"{ActiveProto} {ActivePort}: Host Reachable (Verify in-game)" : "Host Unreachable";
+        TxtUdpPort.Text = probe.PortSummary;
 
         if (probe.DeviceReachable)
         {

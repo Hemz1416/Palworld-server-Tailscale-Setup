@@ -13,7 +13,9 @@ public class NetworkProbeResult
     public bool IsDirectPath { get; set; }
     public string PathType { get; set; } = "UNKNOWN"; // DIRECT, RELAYED (DERP), or UNREACHABLE
     public double LatencyMs { get; set; }
-    public string UdpPortSummary { get; set; } = "NOT DIRECTLY VERIFIED";
+    public bool? PortListening { get; set; }
+    public string PortSummary { get; set; } = "NOT DIRECTLY VERIFIED";
+    public string UdpPortSummary => PortSummary;
     public string StatusMessage { get; set; } = string.Empty;
 }
 
@@ -28,7 +30,9 @@ public class NetworkProbeService
 
     public async Task<NetworkProbeResult> TestConnectionAsync(string serverTarget, int port, CancellationToken ct = default)
     {
-        Logger.Log($"Beginning network probe for target '{serverTarget}' on UDP port {port}...");
+        bool isTcp = (port == 25565);
+        string proto = isTcp ? "TCP" : (port == 8211 ? "UDP" : "Port");
+        Logger.Log($"Beginning network probe for target '{serverTarget}' on {proto} port {port}...");
         var result = new NetworkProbeResult();
 
         // Step 1: Tailscale ICMP/DERP ping
@@ -41,17 +45,45 @@ public class NetworkProbeService
         if (!pingResult.Success)
         {
             result.StatusMessage = "Server host is currently unreachable on Tailscale.";
-            result.UdpPortSummary = "UNREACHABLE";
+            result.PortSummary = "Host Unreachable";
             Logger.Log($"[PROBE] Device {serverTarget} is unreachable.");
             return result;
         }
 
-        // Palworld uses connectionless UDP for gameplay replication.
-        // As directed, we do not claim tailscale ping proves UDP 8211, nor do we fabricate UDP reachability.
-        result.UdpPortSummary = "Palworld UDP endpoint cannot be directly verified from this diagnostic mode.";
-        result.StatusMessage = $"Shared server machine reachable via Tailscale ({result.PathType}, {result.LatencyMs:F1}ms).";
+        // Step 2: Protocol-specific verification
+        if (isTcp)
+        {
+            try
+            {
+                using var client = new TcpClient();
+                var connectTask = client.ConnectAsync(serverTarget, port);
+                var completed = await Task.WhenAny(connectTask, Task.Delay(1500, ct));
+                if (completed == connectTask && client.Connected)
+                {
+                    result.PortListening = true;
+                    result.PortSummary = $"TCP {port}: Online & Listening";
+                }
+                else
+                {
+                    result.PortListening = false;
+                    result.PortSummary = $"TCP {port}: No listener (Start Minecraft Server)";
+                }
+            }
+            catch
+            {
+                result.PortListening = false;
+                result.PortSummary = $"TCP {port}: Closed (Host reachable)";
+            }
+        }
+        else
+        {
+            // Palworld uses UDP; endpoint cannot be passively probed without game replication packets
+            result.PortListening = null;
+            result.PortSummary = $"UDP {port}: Host Reachable (Verify in-game)";
+        }
 
-        Logger.Log($"[PROBE RESULT] Reachable={result.DeviceReachable}, Path={result.PathType}, Latency={result.LatencyMs:F1}ms, UDP={result.UdpPortSummary}");
+        result.StatusMessage = $"Shared server machine reachable via Tailscale ({result.PathType}, {result.LatencyMs:F1}ms).";
+        Logger.Log($"[PROBE RESULT] Reachable={result.DeviceReachable}, Path={result.PathType}, Latency={result.LatencyMs:F1}ms, PortDiag={result.PortSummary}");
         return result;
     }
 }
