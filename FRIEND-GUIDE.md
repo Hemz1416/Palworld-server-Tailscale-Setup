@@ -12,10 +12,19 @@ Tailscale is a zero-configuration, encrypted private mesh network built on WireG
 
 ---
 
+## 📥 Download Connection Tools
+
+Download either file directly from the [Latest GitHub Release](https://github.com/Hemz1416/Tailscale-Setup/releases/latest):
+* **[Download `Tailscale-Connection-Setup.exe`](https://github.com/Hemz1416/Tailscale-Setup/releases/latest/download/Tailscale-Connection-Setup.exe)** (Recommended GUI App)
+* **[Download `Friend-Quick-Join.bat`](https://github.com/Hemz1416/Tailscale-Setup/releases/latest/download/Friend-Quick-Join.bat)** (Lightweight 1-Click Script)
+* **[Download `Tailscale-Connection-Setup.zip`](https://github.com/Hemz1416/Tailscale-Setup/releases/latest/download/Tailscale-Connection-Setup.zip)** (Complete ZIP package)
+
+---
+
 ## 🚀 How to Connect in 3 Simple Steps
 
 ### Step 1: Install Tailscale (If you don't have it yet)
-- **Fastest**: Double-click [`Friend-Quick-Join.bat`](file:///Friend-Quick-Join.bat) (it will download and install official Tailscale for you automatically).
+- **Automatic**: Run `Tailscale-Connection-Setup.exe` or `Friend-Quick-Join.bat` (they will download and install official Tailscale for you automatically).
 - **Manual**: Download the official Windows installer from [tailscale.com/download](https://tailscale.com/download).
 
 ### Step 2: Accept Hemz's Machine Share or Sign In

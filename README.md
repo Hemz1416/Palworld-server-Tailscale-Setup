@@ -89,10 +89,12 @@ In `Host-Dashboard.bat`, press `[3]` or run [`Setup-Firewall-Rule.bat`](file:///
 
 ## 👥 Friend Quick Start (For Players Joining You)
 
-You can send your friend either:
-1. **Lightweight Batch Launcher:** Send [`Friend-Quick-Join.bat`](file:///Friend-Quick-Join.bat) (runs directly on any Windows PC).
-2. **Graphical App:** Send [`Release/Tailscale-Connection-Setup.exe`](file:///Release/Tailscale-Connection-Setup.exe) (or the complete ZIP [`Release/Tailscale-Connection-Setup.zip`](file:///Release/Tailscale-Connection-Setup.zip)).
-3. **Friend Guide:** Send [`FRIEND-GUIDE.md`](file:///FRIEND-GUIDE.md) or [`Release/README-FOR-FRIEND.txt`](file:///Release/README-FOR-FRIEND.txt).
+### 📥 Direct Download Links (From GitHub Releases)
+Friends can download the files directly from your GitHub repository releases:
+* **[Download `Tailscale-Connection-Setup.exe`](https://github.com/Hemz1416/Tailscale-Setup/releases/latest/download/Tailscale-Connection-Setup.exe)** (Direct Single-File Application)
+* **[Download `Friend-Quick-Join.bat`](https://github.com/Hemz1416/Tailscale-Setup/releases/latest/download/Friend-Quick-Join.bat)** (Lightweight 1-Click Script)
+* **[Download `Tailscale-Connection-Setup.zip`](https://github.com/Hemz1416/Tailscale-Setup/releases/latest/download/Tailscale-Connection-Setup.zip)** (Full Package Bundle)
+* 👉 **[View Latest GitHub Release Page](https://github.com/Hemz1416/Tailscale-Setup/releases/latest)**
 
 ### What Happens When Your Friend Runs It:
 1. **Automated Install:** If Tailscale is not installed on their computer, it automatically downloads and installs the official Tailscale client.
